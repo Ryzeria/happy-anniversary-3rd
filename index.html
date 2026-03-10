@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>3 Tahun Bersama 🌸 — Untuk Anggita</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.hero-photo-ring {
+  width:160px; height:160px; border-radius:50%;
+  border:3px solid var(--rose); padding:4px;
+  box-shadow:0 0 30px rgba(201,24,74,.5), 0 0 60px rgba(201,24,74,.2);
+  margin-bottom:1.8rem; overflow:hidden; background:#1a0a2e;
+  animation:float 3.5s ease-in-out infinite;
+}
+.hero-photo-ring img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+.hero-photo-ring .ring-fallback {
+  width:100%; height:100%; border-radius:50%;
+  background:linear-gradient(135deg,#3c096c,#c9184a);
+  display:flex; align-items:center; justify-content:center; font-size:3.5rem;
+}
+.story-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:1.2rem; padding:0 1rem; max-width:900px; margin:1.5rem auto;
+}
+.story-card {
+  background:var(--bg-card); border:1px solid var(--border-rose);
+  border-radius:18px; padding:1.5rem; text-align:center;
+  transition:all .3s;
+}
+.story-card:hover { border-color:rgba(201,24,74,.6); transform:translateY(-4px); box-shadow:var(--shadow-rose); }
+.story-card .sc-icon { font-size:2.2rem; margin-bottom:.8rem; }
+.story-card .sc-label { font-size:.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-bottom:.3rem; }
+.story-card .sc-val { font-family:'Playfair Display',serif; font-size:1.1rem; color:var(--pink); }
+.footer-heart {
+  text-align:center; padding:3rem 1rem 4rem;
+  font-family:'Dancing Script',cursive; font-size:1.4rem; color:var(--dim);
+}
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+
+<!-- NAVBAR -->
+<nav class="nav">
+  <div class="nav-logo">💗 RyZeria</div>
+  <button class="music-btn" id="music-btn" onclick="toggleMusic()">
+    🎵 <span class="music-disc paused" id="disc">🎵</span> Musik Off
+  </button>
+</nav>
+
+<audio id="bg-audio" loop>
+  <source src="assets/audio/song.mp3" type="audio/mpeg">
+</audio>
+
+<main class="page">
+
+  <!-- ─── HERO ─────────────────────────────────────────────── -->
+  <section class="hero" id="hero">
+
+    <div class="badge">✨ 3rd Anniversary ✨</div>
+
+    <div class="hero-photo-ring">
+      <img src="assets/images/picture1.jpg" alt="Us" onerror="this.parentElement.innerHTML='<div class=ring-fallback>💕</div>'">
+    </div>
+
+    <h1 class="hero-title">Mas Za & Anggita</h1>
+    <p class="hero-sub">10 Maret 2023 — Selamanya 🌸</p>
+    <p class="hero-tagline">
+      Dari bocah Tambran favoritku yang bercita-cita jadi dokter gigi,
+      yang suka musang bulan & anggrek bulan, sampai ke jalan Tunjungan Surabaya —
+      setiap momen bersamamu adalah anugerah. Selamat 3 tahun, Gita! 💜
+    </p>
+
+    <!-- COUNTDOWN -->
+    <div class="countdown-wrap">
+      <div class="countdown-label">Sudah Bersama Selama</div>
+      <div class="countdown-status" id="cd-status">H+ 🥰</div>
+      <div class="countdown-grid">
+        <div class="cd-box"><div class="cd-num" id="cd-years">0</div><div class="cd-unit">Tahun</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box"><div class="cd-num" id="cd-days">0</div><div class="cd-unit">Hari</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box"><div class="cd-num" id="cd-hours">00</div><div class="cd-unit">Jam</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box"><div class="cd-num" id="cd-mins">00</div><div class="cd-unit">Menit</div></div>
+        <div class="cd-sep">:</div>
+        <div class="cd-box"><div class="cd-num" id="cd-secs">00</div><div class="cd-unit">Detik</div></div>
+      </div>
+    </div>
+
+    <a href="section1.html" class="btn btn-rose pulse" style="font-size:1.05rem; padding:1.1rem 3rem;">
+      🌸 Mulai Petualangan Surprise!
+    </a>
+    <p class="mt-2" style="font-size:.78rem; color:var(--dim);">ada sesuatu yang spesial menantimu ✨</p>
+  </section>
+
+  <!-- ─── GALLERY ──────────────────────────────────────────── -->
+  <section class="gallery-section">
+    <div class="section-eyebrow">
+      <div class="eyebrow-tag">📸 Kenangan Kita</div>
+      <div class="divider"></div>
+      <h2 class="section-title">Foto-Foto <span>Indah Kita</span></h2>
+    </div>
+
+    <div class="carousel" id="carousel">
+      <div class="carousel-track" id="carousel-track">
+        <div class="carousel-slide">
+          <img src="assets/images/picture1.jpg" alt="Kenangan 1" onerror="this.style.display='none'">
+          <div class="slide-caption">Momen pertama yang tak terlupakan 💕</div>
+        </div>
+        <div class="carousel-slide">
+          <img src="assets/images/picture2.jpg" alt="Kenangan 2" onerror="this.style.display='none'">
+          <div class="slide-caption">Jalan Tunjungan, 10 Januari 2026 🌆</div>
+        </div>
+        <div class="carousel-slide">
+          <img src="assets/images/picture3.jpg" alt="Kenangan 3" onerror="this.style.display='none'">
+          <div class="slide-caption">Bocah Tambran Favoritku 🌸</div>
+        </div>
+        <div class="carousel-slide">
+          <img src="assets/images/picture4.jpg" alt="Kenangan 4" onerror="this.style.display='none'">
+          <div class="slide-caption">Date Online via Discord 🎮💜</div>
+        </div>
+        <div class="carousel-slide">
+          <img src="assets/images/picture5.jpg" alt="Kenangan 5" onerror="this.style.display='none'">
+          <div class="slide-caption">Photobox Berdua 📸✨</div>
+        </div>
+        <div class="carousel-slide">
+          <img src="assets/images/picture6.jpg" alt="Kenangan 6" onerror="this.style.display='none'">
+          <div class="slide-caption">3 Tahun yang Indah ❤️</div>
+        </div>
+      </div>
+      <button class="c-btn prev" onclick="prevSlide()">‹</button>
+      <button class="c-btn next" onclick="nextSlide()">›</button>
+    </div>
+    <div class="carousel-dots" id="carousel-dots"></div>
+  </section>
+
+  <!-- ─── FACTS ABOUT HER ─────────────────────────────────── -->
+  <section style="padding:1rem 0 3rem;">
+    <div class="section-eyebrow">
+      <div class="eyebrow-tag">💜 Tentang Anggita</div>
+      <div class="divider"></div>
+      <h2 class="section-title">Bocah Tambran <span>Favoritku</span></h2>
+    </div>
+
+    <div class="story-grid">
+      <div class="story-card">
+        <div class="sc-icon">🎂</div>
+        <div class="sc-label">Tanggal Lahir</div>
+        <div class="sc-val">6 September 2008</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">📍</div>
+        <div class="sc-label">Asal</div>
+        <div class="sc-val">Tambran, Magetan</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">🦷</div>
+        <div class="sc-label">Cita-Cita</div>
+        <div class="sc-val">Dokter Gigi — UNAIR</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">🏫</div>
+        <div class="sc-label">Sekolah</div>
+        <div class="sc-val">SMA 1 Magetan — XI-5</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">📰</div>
+        <div class="sc-label">Ekstrakulikuler</div>
+        <div class="sc-val">Ketua Mahardika</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">🧬</div>
+        <div class="sc-label">Mata Pelajaran Fav</div>
+        <div class="sc-val">Biologi — Olimpiade!</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">🦡</div>
+        <div class="sc-label">Hewan Favorit</div>
+        <div class="sc-val">Musang Bulan & Iguana</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">🌺</div>
+        <div class="sc-label">Tanaman Favorit</div>
+        <div class="sc-val">Anggrek Bulan</div>
+      </div>
+      <div class="story-card">
+        <div class="sc-icon">🥟</div>
+        <div class="sc-label">Makanan Favorit Berdua</div>
+        <div class="sc-val">Dimsum 🥰</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── TIMELINE ──────────────────────────────────────────── -->
+  <section class="timeline-section">
+    <div class="section-eyebrow">
+      <div class="eyebrow-tag">💌 Perjalanan Kita</div>
+      <div class="divider"></div>
+      <h2 class="section-title">Kisah <span>Cinta Kita</span></h2>
+    </div>
+
+    <div class="timeline">
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content">
+          <div class="t-date">2019</div>
+          <div class="t-title">Pertemuan Pertama 🎭</div>
+          <div class="t-text">Di grup roleplay — dia jadi Shiro, aku jadi Mochizuki. Sejak saat itu dia memanggilku "Kang Gojek Jeli" karena kenyal seperti mochi!</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content">
+          <div class="t-date">2019 - 2022</div>
+          <div class="t-title">Belajar Bersama 📚</div>
+          <div class="t-text">Aku (SMA) membantunya (SD) belajar untuk olimpiade IPA. Sempat lost contact, tapi jodoh tak ke mana...</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content">
+          <div class="t-date">2022</div>
+          <div class="t-title">Bertemu Kembali 💫</div>
+          <div class="t-text">Aku sudah kuliah di ITS, dia SMP kelas IX. Takdir mempertemukan kita kembali, lebih indah dari sebelumnya.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content">
+          <div class="t-date">10 Maret 2023 ❤️</div>
+          <div class="t-title">Resmi Berpacaran!</div>
+          <div class="t-text">Hari paling bahagia — kita akhirnya resmi! Tiga tahun penuh cinta, tawa, dan kenangan online via Discord.</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content">
+          <div class="t-date">10 Januari 2026</div>
+          <div class="t-title">Date Pertama Offline 🌆</div>
+          <div class="t-text">Dia ke Surabaya untuk tes ITS! Jalan di Jalan Tunjungan, foto photobox berdua — momen paling berharga. ✨</div>
+        </div>
+      </div>
+
+      <div class="t-item">
+        <div class="t-dot"></div>
+        <div class="t-content">
+          <div class="t-date">10 Maret 2026 🎉</div>
+          <div class="t-title">Anniversary ke-3!</div>
+          <div class="t-text">3 tahun penuh cinta dan keajaiban. Ada surprise spesial yang menunggumu — selamat menjelajah! 🌸</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <div class="footer-heart">
+    Dibuat dengan 💜 penuh cinta oleh Mas Za, khusus untuk<br>
+    <span style="color:var(--pink);">Anggita Azaria Ramadhani</span> — bocah Tambran favoritku 🌸
+  </div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal">
+    <div class="modal-icon">✨</div>
+    <div class="modal-title"></div>
+    <div class="modal-body"></div>
+    <div class="modal-code hidden"></div>
+    <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+// ─── INIT ─────────────────────────────────────────────────────
+initStars('star-canvas');
+initParticles('particles');
+
+// ─── MUSIC ───────────────────────────────────────────────────
+const audio = document.getElementById('bg-audio');
+let musicOn = false;
+
+function toggleMusic() {
+  if (musicOn) {
+    audio.pause();
+    musicOn = false;
+    sessionStorage.setItem('music_on','0');
+    document.getElementById('music-btn').innerHTML = '🎵 <span class="music-disc paused" id="disc">🎵</span> Musik Off';
+  } else {
+    audio.play().catch(()=>{});
+    musicOn = true;
+    sessionStorage.setItem('music_on','1');
+    document.getElementById('music-btn').innerHTML = '🎵 <span class="music-disc" id="disc">🎵</span> Musik On';
+  }
+}
+
+// Auto-resume music state
+if (sessionStorage.getItem('music_on') === '1') {
+  document.addEventListener('click', function startAudio() {
+    audio.play().catch(()=>{});
+    musicOn = true;
+    document.getElementById('music-btn').innerHTML = '🎵 <span class="music-disc" id="disc">🎵</span> Musik On';
+    document.removeEventListener('click', startAudio);
+  }, { once: true });
+}
+
+// ─── COUNTDOWN ───────────────────────────────────────────────
+function updateCountdown() {
+  const now     = new Date();
+  const START   = new Date('2023-03-10T00:00:00');
+  const diffMs  = now - START;
+  const absSec  = Math.floor(Math.abs(diffMs) / 1000);
+
+  const years   = Math.floor(absSec / (365.25 * 86400));
+  const remSec  = absSec - years * 365.25 * 86400;
+  const days    = Math.floor(remSec / 86400);
+  const hours   = Math.floor((absSec % 86400) / 3600);
+  const minutes = Math.floor((absSec % 3600) / 60);
+  const seconds = absSec % 60;
+
+  const pad = n => String(n).padStart(2, '0');
+
+  document.getElementById('cd-years').textContent = years;
+  document.getElementById('cd-days').textContent  = days;
+  document.getElementById('cd-hours').textContent = pad(hours);
+  document.getElementById('cd-mins').textContent  = pad(minutes);
+  document.getElementById('cd-secs').textContent  = pad(seconds);
+
+  if (diffMs >= 0) {
+    document.getElementById('cd-status').textContent = 'H+ 🥰 Sudah bersama selama...';
+  } else {
+    document.getElementById('cd-status').textContent = 'H- ⏳ Menghitung hari menuju anniversary...';
+  }
+}
+updateCountdown();
+setInterval(updateCountdown, 1000);
+
+// ─── CAROUSEL ────────────────────────────────────────────────
+let curSlide = 0;
+const track  = document.getElementById('carousel-track');
+const slides = track.querySelectorAll('.carousel-slide');
+const dotsWrap = document.getElementById('carousel-dots');
+const TOTAL  = slides.length;
+
+// Build dots
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'c-dot' + (i === 0 ? ' active' : '');
+  d.onclick = () => goSlide(i);
+  dotsWrap.appendChild(d);
+});
+
+function goSlide(n) {
+  curSlide = (n + TOTAL) % TOTAL;
+  track.style.transform = `translateX(-${curSlide * 100}%)`;
+  dotsWrap.querySelectorAll('.c-dot').forEach((d, i) =>
+    d.classList.toggle('active', i === curSlide));
+}
+function prevSlide() { goSlide(curSlide - 1); }
+function nextSlide() { goSlide(curSlide + 1); }
+
+// Auto-advance
+setInterval(() => goSlide(curSlide + 1), 4500);
+
+// ─── SCROLL ANIMATIONS ───────────────────────────────────────
+const observer = new IntersectionObserver(entries =>
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('fade-in'); }),
+  { threshold: 0.1 }
+);
+document.querySelectorAll('.story-card, .t-content, .gallery-section').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>

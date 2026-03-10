@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Puzzle Geser 🧩 — Game 1</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.g-content { max-width:480px; margin:0 auto; padding:1.5rem 1rem; text-align:center; }
+.g-desc { font-size:.85rem; color:var(--dim); margin-bottom:1.5rem; line-height:1.7; }
+.puzzle-wrap {
+  background:rgba(0,0,0,.4); border-radius:18px;
+  border:1px solid var(--border-rose); padding:1rem; margin-bottom:1.2rem;
+}
+.puzzle-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:6px; }
+.p-tile {
+  aspect-ratio:1; background:var(--bg-card);
+  border:2px solid rgba(201,24,74,.3); border-radius:10px;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Playfair Display',serif; font-size:2rem; font-weight:700;
+  cursor:pointer; user-select:none; transition:all .18s;
+  position:relative;
+}
+.p-tile:not(.empty):hover { background:rgba(201,24,74,.2); border-color:var(--rose); transform:scale(1.04); }
+.p-tile.empty { background:transparent; border:2px dashed rgba(255,255,255,.08); cursor:default; }
+.p-tile.correct { background:rgba(0,255,136,.1); border-color:rgba(0,255,136,.4); color:var(--green); }
+.p-tile.movable { border-color:rgba(255,215,0,.5); box-shadow:0 0 8px rgba(255,215,0,.3); }
+.p-tile.pop { animation:pop .25s ease; }
+@keyframes pop { 0%{transform:scale(.9)} 60%{transform:scale(1.08)} 100%{transform:scale(1)} }
+
+.puzzle-stats {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:.6rem 1rem; background:rgba(0,0,0,.3); border-radius:10px; margin-top:.6rem;
+}
+.stat-box { text-align:center; }
+.stat-num { font-size:1.3rem; font-weight:700; color:var(--gold); font-family:'Playfair Display',serif; }
+.stat-lbl { font-size:.65rem; letter-spacing:1px; text-transform:uppercase; color:var(--dim); }
+
+.solved-banner {
+  display:none; padding:1.5rem;
+  background:rgba(0,255,136,.08); border:1px solid rgba(0,255,136,.4);
+  border-radius:16px; margin-bottom:1.2rem;
+}
+.solved-banner.show { display:block; animation:fadeIn .6s ease; }
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+
+<!-- GAME NAV -->
+<div class="g-nav">
+  <a href="section2.html" class="g-back">← Kembali</a>
+  <span class="g-nav-title">🧩 Puzzle Geser — Minggu 1</span>
+  <div class="g-stat">Langkah: <strong id="move-count">0</strong></div>
+</div>
+
+<main style="position:relative;z-index:2;">
+
+<!-- LOCK SCREEN -->
+<div id="lock-screen" class="lock-screen" style="display:none;">
+  <div class="lock-icon" id="lock-icon">🔒</div>
+  <h2 class="lock-title" id="lock-title">Game Terkunci</h2>
+  <p class="lock-msg" id="lock-msg">Game ini belum tersedia.</p>
+  <a href="section2.html" class="btn btn-rose">← Kembali ke Game Hub</a>
+</div>
+
+<!-- GAME AREA -->
+<div id="game-area" class="g-content" style="display:none;">
+
+  <div class="badge" style="margin-bottom:1rem;">🧩 Minggu 1 — 10–16 Mar 2026</div>
+  <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:.5rem;">Puzzle Geser</h2>
+  <p class="g-desc">
+    Susun angka 1–8 secara berurutan dari kiri atas! Klik angka yang bersebelahan dengan kotak kosong untuk menggesernya. Semangat! 💪
+  </p>
+
+  <!-- SOLVED BANNER -->
+  <div class="solved-banner" id="solved-banner">
+    <div style="font-size:2rem; margin-bottom:.5rem;">🎉</div>
+    <div style="font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--green); margin-bottom:.5rem;">Puzzle Selesai!</div>
+    <div style="font-size:.85rem; color:var(--dim); margin-bottom:1rem;">
+      Kamu berhasil dengan <strong id="final-moves" style="color:var(--gold);">0</strong> langkah!<br>
+      Ini kode rahasiamu, catat baik-baik! 🔑
+    </div>
+    <div class="modal-code" style="display:inline-block; padding:.8rem 2rem; background:rgba(0,255,136,.08); border:2px solid rgba(0,255,136,.4); border-radius:12px; font-family:'Courier New',monospace; font-size:1.6rem; color:var(--green); letter-spacing:5px;">
+      Unl6M0
+    </div>
+    <div style="margin-top:1.2rem; display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap;">
+      <a href="section2.html" class="btn btn-rose btn-sm">← Game Hub</a>
+      <button class="btn btn-outline btn-sm" onclick="initPuzzle()">Main Lagi</button>
+    </div>
+  </div>
+
+  <!-- PUZZLE -->
+  <div class="puzzle-wrap" id="puzzle-wrap">
+    <div class="puzzle-grid" id="puzzle-grid"></div>
+    <div class="puzzle-stats">
+      <div class="stat-box"><div class="stat-num" id="moves">0</div><div class="stat-lbl">Langkah</div></div>
+      <button class="btn btn-outline btn-sm" onclick="initPuzzle()">🔀 Acak Ulang</button>
+      <div class="stat-box"><div class="stat-num" id="timer">0</div><div class="stat-lbl">Detik</div></div>
+    </div>
+  </div>
+
+  <p style="font-size:.75rem; color:var(--dim);">Klik angka yang bersebelahan dengan kotak kosong ⬆️</p>
+</div>
+
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal">
+    <div class="modal-icon">✨</div>
+    <div class="modal-title"></div>
+    <div class="modal-body"></div>
+    <div class="modal-code hidden"></div>
+    <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+
+// ─── AUTH + STATUS ─────────────────────────────────────────────
+const bgAudio = document.getElementById('bg-audio');
+if (sessionStorage.getItem('music_on') === '1') bgAudio.play().catch(()=>{});
+
+const GAME_IDX  = 0;       // 0-based
+const GAME_CODE = 'Unl6M0';
+const GAME_KEY  = 'game1_done';
+const CODE_KEY  = 'game1_code';
+
+function checkAccess() {
+  if (localStorage.getItem('s1_passed') !== '1') {
+    showLock('🔐','Akses Ditolak','Selesaikan Section 1 terlebih dahulu!'); return false;
+  }
+  const st = getGameStatus(GAME_IDX);
+  if (st === 'locked') {
+    showLock('🔒','Game Belum Terbuka','Game ini akan terbuka pada 10 Maret 2026. Sabar ya! 😊');
+    return false;
+  }
+  if (st === 'expired') {
+    showLock('⏰','Waktu Habis','Waktu untuk game ini sudah berakhir. Nantikan game berikutnya!');
+    return false;
+  }
+  return true;
+}
+
+function showLock(icon, title, msg) {
+  document.getElementById('lock-screen').style.display = 'flex';
+  document.getElementById('lock-icon').textContent = icon;
+  document.getElementById('lock-title').textContent = title;
+  document.getElementById('lock-msg').textContent   = msg;
+}
+
+// ─── PUZZLE LOGIC ──────────────────────────────────────────────
+let tiles  = [];
+let moves  = 0;
+let elapsed = 0;
+let timerInt = null;
+let solved = false;
+const GOAL = [1,2,3,4,5,6,7,8,0]; // 0 = empty
+
+function initPuzzle() {
+  solved = false;
+  moves  = 0; elapsed = 0;
+  clearInterval(timerInt);
+  document.getElementById('moves').textContent    = '0';
+  document.getElementById('move-count').textContent = '0';
+  document.getElementById('timer').textContent   = '0';
+  document.getElementById('solved-banner').classList.remove('show');
+  document.getElementById('puzzle-wrap').style.display = 'block';
+
+  // Shuffle by applying random valid moves from solved state
+  tiles = [...GOAL];
+  for (let i = 0; i < 200; i++) {
+    const empty = tiles.indexOf(0);
+    const nbrs  = getNeighbors(empty);
+    const pick  = nbrs[Math.floor(Math.random() * nbrs.length)];
+    [tiles[empty], tiles[pick]] = [tiles[pick], tiles[empty]];
+  }
+
+  timerInt = setInterval(() => {
+    elapsed++;
+    document.getElementById('timer').textContent = elapsed;
+  }, 1000);
+
+  renderGrid();
+}
+
+function getNeighbors(idx) {
+  const r = Math.floor(idx / 3), c = idx % 3;
+  const nbrs = [];
+  if (r > 0) nbrs.push(idx - 3);
+  if (r < 2) nbrs.push(idx + 3);
+  if (c > 0) nbrs.push(idx - 1);
+  if (c < 2) nbrs.push(idx + 1);
+  return nbrs;
+}
+
+function renderGrid() {
+  const grid = document.getElementById('puzzle-grid');
+  const empty = tiles.indexOf(0);
+  grid.innerHTML = '';
+
+  tiles.forEach((val, idx) => {
+    const tile = document.createElement('div');
+    const isEmpty = val === 0;
+    const isCorrect = val !== 0 && GOAL[idx] === val;
+    const isMovable = !isEmpty && getNeighbors(idx).includes(empty);
+
+    tile.className = 'p-tile' +
+      (isEmpty ? ' empty' : '') +
+      (isCorrect ? ' correct' : '') +
+      (isMovable ? ' movable' : '');
+
+    tile.textContent = isEmpty ? '' : val;
+
+    if (!isEmpty && isMovable && !solved) {
+      tile.onclick = () => moveTile(idx);
+    }
+    grid.appendChild(tile);
+  });
+}
+
+function moveTile(idx) {
+  if (solved) return;
+  const empty = tiles.indexOf(0);
+  if (!getNeighbors(idx).includes(empty)) return;
+
+  [tiles[empty], tiles[idx]] = [tiles[idx], tiles[empty]];
+  moves++;
+  document.getElementById('moves').textContent     = moves;
+  document.getElementById('move-count').textContent = moves;
+  renderGrid();
+
+  // Animate the moved tile
+  const newEmpty = tiles.indexOf(0);
+  const tileEls  = document.querySelectorAll('.p-tile');
+  if (tileEls[newEmpty]) tileEls[newEmpty].classList.add('pop');
+
+  if (checkSolved()) onSolved();
+}
+
+function checkSolved() {
+  return tiles.every((v, i) => v === GOAL[i]);
+}
+
+function onSolved() {
+  solved = true;
+  clearInterval(timerInt);
+  document.getElementById('puzzle-wrap').style.display = 'none';
+  document.getElementById('solved-banner').classList.add('show');
+  document.getElementById('final-moves').textContent = moves;
+  localStorage.setItem(GAME_KEY, '1');
+  localStorage.setItem(CODE_KEY, GAME_CODE);
+  launchConfetti();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+if (checkAccess()) {
+  document.getElementById('game-area').style.display = 'block';
+  // If already completed, show solved banner
+  if (localStorage.getItem(GAME_KEY) === '1') {
+    document.getElementById('game-area').style.display = 'block';
+    document.getElementById('solved-banner').classList.add('show');
+    document.getElementById('puzzle-wrap').style.display = 'none';
+    document.getElementById('final-moves').textContent = '?';
+  } else {
+    initPuzzle();
+  }
+}
+</script>
+</body>
+</html>

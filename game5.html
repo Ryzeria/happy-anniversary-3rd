@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Susun Kata 🔤 — Game 5</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.g-content { max-width:520px; margin:0 auto; padding:1.5rem 1rem; text-align:center; }
+.g-desc    { font-size:.83rem; color:var(--dim); margin-bottom:1.4rem; line-height:1.7; }
+.scr-card  {
+  background:var(--bg-card); border:1px solid var(--border-rose);
+  border-radius:20px; padding:1.8rem 1.4rem; margin-bottom:1rem;
+}
+.scr-word-num { font-size:.7rem; letter-spacing:3px; text-transform:uppercase; color:var(--dim); margin-bottom:.6rem; }
+.scr-hint { font-size:.82rem; color:var(--rose-bright); margin-bottom:1rem; font-style:italic; }
+
+/* Answer area */
+.ans-area {
+  display:flex; justify-content:center; flex-wrap:wrap;
+  gap:.4rem; min-height:52px;
+  border-bottom:2px solid rgba(201,24,74,.3);
+  padding-bottom:.6rem; margin-bottom:.8rem;
+}
+.ans-slot {
+  width:42px; height:42px;
+  border:2px dashed rgba(255,255,255,.18); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.15rem; font-weight:700; cursor:pointer; transition:all .2s;
+}
+.ans-slot.filled { background:rgba(201,24,74,.18); border-color:var(--rose); border-style:solid; color:var(--rose-bright); }
+.ans-slot.ok     { background:rgba(0,255,136,.12); border-color:rgba(0,255,136,.5); border-style:solid; color:var(--green); }
+.ans-slot.wrong-anim { animation:shake .4s ease; }
+
+/* Letter tiles */
+.letter-pool {
+  display:flex; justify-content:center; flex-wrap:wrap; gap:.4rem; margin-bottom:1rem;
+}
+.l-tile {
+  width:42px; height:42px; background:var(--bg-card);
+  border:2px solid rgba(201,24,74,.45); border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.15rem; font-weight:700; color:var(--rose-bright);
+  cursor:pointer; user-select:none; transition:all .2s;
+}
+.l-tile:hover:not(.used) { transform:scale(1.1); border-color:var(--rose); box-shadow:0 0 8px rgba(201,24,74,.4); }
+.l-tile.used  { opacity:.2; cursor:default; transform:none !important; box-shadow:none !important; }
+
+.btn-clear { font-size:.8rem; }
+
+/* Progress dots */
+.dots-row { display:flex; gap:.5rem; justify-content:center; margin-bottom:1rem; }
+.s-dot { width:11px; height:11px; border-radius:50%; background:rgba(255,255,255,.15); border:2px solid rgba(255,255,255,.2); transition:all .3s; }
+.s-dot.cur  { background:var(--rose); border-color:var(--rose); box-shadow:0 0 8px var(--rose); }
+.s-dot.done { background:var(--green); border-color:var(--green); }
+
+.word-correct-banner {
+  display:none; padding:.8rem;
+  background:rgba(0,255,136,.1); border:1px solid rgba(0,255,136,.35);
+  border-radius:10px; margin-top:.5rem; font-size:.85rem; color:var(--green);
+}
+.word-correct-banner.show { display:block; animation:fadeIn .3s ease; }
+
+.solved-banner { display:none; padding:1.5rem;
+  background:rgba(0,255,136,.08); border:1px solid rgba(0,255,136,.4);
+  border-radius:16px; margin-bottom:1rem; }
+.solved-banner.show { display:block; animation:fadeIn .6s ease; }
+</style>
+</head>
+<body>
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+
+<div class="g-nav">
+  <a href="section2.html" class="g-back">← Kembali</a>
+  <span class="g-nav-title">🔤 Susun Kata — Minggu 5</span>
+  <div class="g-stat">Kata: <strong id="word-prog">1</strong>/5</div>
+</div>
+
+<main style="position:relative;z-index:2;">
+
+<div id="lock-screen" class="lock-screen" style="display:none;">
+  <div class="lock-icon" id="lock-icon">🔒</div>
+  <h2 class="lock-title" id="lock-title">Game Terkunci</h2>
+  <p class="lock-msg"  id="lock-msg">Game ini belum tersedia.</p>
+  <a href="section2.html" class="btn btn-rose">← Game Hub</a>
+</div>
+
+<div id="game-area" class="g-content" style="display:none;">
+
+  <div class="badge" style="margin-bottom:.8rem;">🔤 Minggu 5 — 7–13 Apr 2026</div>
+  <h2 style="font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:.4rem;">Susun Kata</h2>
+  <p class="g-desc">Susun huruf-huruf yang teracak menjadi kata yang bermakna dalam kisah kita! Klik huruf untuk menempatkan, klik slot untuk mengambil kembali. 🔤</p>
+
+  <!-- SOLVED -->
+  <div class="solved-banner" id="solved-banner">
+    <div style="font-size:2rem;margin-bottom:.4rem;">🎊</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green);margin-bottom:.4rem;">Semua Kata Berhasil Disusun!</div>
+    <div style="font-size:.83rem;color:var(--dim);margin-bottom:1rem;">Selamat! Kamu berhasil menyusun semua 5 kata! Ini kode rahasiamu terakhir! 🔑</div>
+    <div style="padding:.8rem 2rem;background:rgba(0,255,136,.08);border:2px solid rgba(0,255,136,.4);border-radius:12px;font-family:'Courier New',monospace;font-size:1.6rem;color:var(--green);letter-spacing:5px;display:inline-block;">M3JTQHJZ</div>
+    <div style="margin-top:1.2rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;">
+      <a href="section2.html" class="btn btn-rose btn-sm">← Game Hub</a>
+      <button class="btn btn-outline btn-sm" onclick="startGame()">Main Lagi</button>
+    </div>
+  </div>
+
+  <!-- DOTS -->
+  <div class="dots-row">
+    <div class="s-dot" id="sd0"></div><div class="s-dot" id="sd1"></div>
+    <div class="s-dot" id="sd2"></div><div class="s-dot" id="sd3"></div>
+    <div class="s-dot" id="sd4"></div>
+  </div>
+
+  <!-- SCRAMBLE CARD -->
+  <div class="scr-card" id="scr-card">
+    <div class="scr-word-num" id="scr-num">Kata 1 dari 5</div>
+    <div class="scr-hint" id="scr-hint">Petunjuk: ...</div>
+    <div class="ans-area" id="ans-area"></div>
+    <div class="letter-pool" id="letter-pool"></div>
+    <div class="word-correct-banner" id="correct-banner">✅ Benar! Melanjutkan...</div>
+    <button class="btn btn-outline btn-sm btn-clear" onclick="clearAnswer()">🗑 Hapus Semua</button>
+  </div>
+
+</div>
+</main>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal"><div class="modal-icon">✨</div><div class="modal-title"></div>
+  <div class="modal-body"></div><div class="modal-code hidden"></div>
+  <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button></div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+const bgAudio = document.getElementById('bg-audio');
+if (sessionStorage.getItem('music_on') === '1') bgAudio.play().catch(()=>{});
+
+const GAME_IDX  = 4;
+const GAME_CODE = 'M3JTQHJZ';
+const GAME_KEY  = 'game5_done';
+const CODE_KEY  = 'game5_code';
+
+const WORD_DATA = [
+  { word:'ANGGITA',    hint:'Nama lengkap bocah Tambran favoritku 🌸' },
+  { word:'MOCHIZUKI',  hint:'Nama karakterku di pertemuan pertama kita 🎭' },
+  { word:'DIMSUM',     hint:'Makanan favorit yang selalu kita pilih bersama 🥟' },
+  { word:'MAGETAN',    hint:'Kota asal sang bocah Tambran tercinta 📍' },
+  { word:'DISCORD',    hint:'Aplikasi untuk date online nonton & belajar bersama 🎮' },
+];
+
+let curWordIdx = 0;
+let answerArr  = [];   // each: { letter, fromPoolIdx } or null
+let tileUsed   = [];   // bool array, same length as scrambled letters
+
+function checkAccess() {
+  if (localStorage.getItem('s1_passed') !== '1') {
+    showLock('🔐','Akses Ditolak','Selesaikan Section 1 dulu!'); return false;
+  }
+  const st = getGameStatus(GAME_IDX);
+  if (st === 'locked')  { showLock('🔒','Belum Tersedia','Tersedia mulai 7 April 2026.'); return false; }
+  if (st === 'expired') { showLock('⏰','Waktu Habis','Waktu game ini sudah habis.'); return false; }
+  return true;
+}
+function showLock(icon, title, msg) {
+  document.getElementById('lock-screen').style.display = 'flex';
+  document.getElementById('lock-icon').textContent = icon;
+  document.getElementById('lock-title').textContent = title;
+  document.getElementById('lock-msg').textContent   = msg;
+}
+
+function scramble(word) {
+  // Make sure it's noticeably different from original
+  let arr, tries = 0;
+  do {
+    arr = word.split('').sort(() => Math.random() - .5);
+    tries++;
+  } while (arr.join('') === word && tries < 30);
+  return arr;
+}
+
+function startGame() {
+  curWordIdx = 0;
+  document.getElementById('solved-banner').classList.remove('show');
+  document.getElementById('scr-card').style.display  = 'block';
+  document.querySelector('.dots-row').style.display   = 'flex';
+  renderWord();
+}
+
+function renderWord() {
+  const data      = WORD_DATA[curWordIdx];
+  const letters   = scramble(data.word);
+  answerArr       = Array(data.word.length).fill(null);
+  tileUsed        = Array(letters.length).fill(false);
+
+  document.getElementById('scr-num').textContent    = `Kata ${curWordIdx+1} dari 5`;
+  document.getElementById('scr-hint').textContent   = '💡 ' + data.hint;
+  document.getElementById('word-prog').textContent  = curWordIdx + 1;
+  document.getElementById('correct-banner').className = 'word-correct-banner';
+
+  // Dots
+  for (let i = 0; i < 5; i++) {
+    document.getElementById('sd'+i).className =
+      's-dot' + (i < curWordIdx ? ' done' : i === curWordIdx ? ' cur' : '');
+  }
+
+  // Answer slots
+  const ansArea = document.getElementById('ans-area');
+  ansArea.innerHTML = '';
+  for (let i = 0; i < data.word.length; i++) {
+    const slot = document.createElement('div');
+    slot.className  = 'ans-slot';
+    slot.dataset.i  = i;
+    slot.onclick    = () => returnLetter(i);
+    ansArea.appendChild(slot);
+  }
+
+  // Letter tiles
+  const pool = document.getElementById('letter-pool');
+  pool.innerHTML = '';
+  letters.forEach((l, i) => {
+    const tile = document.createElement('div');
+    tile.className   = 'l-tile';
+    tile.textContent = l;
+    tile.dataset.i   = i;
+    tile.dataset.l   = l;
+    tile.onclick     = () => placeLetter(i, l, tile);
+    pool.appendChild(tile);
+  });
+
+  // Store for later reference
+  window._currentLetters = letters;
+  window._currentWord    = data.word;
+}
+
+function placeLetter(poolIdx, letter, tileEl) {
+  if (tileUsed[poolIdx]) return;
+  // Find first empty slot
+  const emptyIdx = answerArr.indexOf(null);
+  if (emptyIdx === -1) return; // all slots filled
+
+  answerArr[emptyIdx] = { letter, poolIdx };
+  tileUsed[poolIdx]   = true;
+  tileEl.classList.add('used');
+
+  renderSlots();
+  checkAnswer();
+}
+
+function returnLetter(slotIdx) {
+  const entry = answerArr[slotIdx];
+  if (!entry) return;
+  tileUsed[entry.poolIdx] = false;
+  answerArr[slotIdx] = null;
+
+  // Re-enable pool tile
+  const tiles = document.querySelectorAll('.l-tile');
+  tiles[entry.poolIdx].classList.remove('used');
+  renderSlots();
+}
+
+function clearAnswer() {
+  answerArr.fill(null);
+  tileUsed.fill(false);
+  document.querySelectorAll('.l-tile').forEach(t => t.classList.remove('used'));
+  renderSlots();
+}
+
+function renderSlots() {
+  const slots = document.querySelectorAll('.ans-slot');
+  slots.forEach((slot, i) => {
+    const entry = answerArr[i];
+    slot.textContent = entry ? entry.letter : '';
+    slot.className   = 'ans-slot' + (entry ? ' filled' : '');
+  });
+}
+
+function checkAnswer() {
+  const filled = answerArr.every(e => e !== null);
+  if (!filled) return;
+
+  const attempt = answerArr.map(e => e.letter).join('');
+  const target  = window._currentWord;
+
+  if (attempt === target) {
+    // Mark slots green
+    document.querySelectorAll('.ans-slot').forEach(s => s.classList.add('ok'));
+    document.getElementById('correct-banner').classList.add('show');
+    setTimeout(() => {
+      curWordIdx++;
+      if (curWordIdx < WORD_DATA.length) {
+        renderWord();
+      } else {
+        onAllSolved();
+      }
+    }, 1200);
+  } else {
+    // Shake and clear after brief delay
+    document.querySelectorAll('.ans-slot').forEach(s => {
+      s.classList.add('wrong-anim');
+      setTimeout(() => s.classList.remove('wrong-anim'), 450);
+    });
+    setTimeout(clearAnswer, 500);
+  }
+}
+
+function onAllSolved() {
+  document.getElementById('scr-card').style.display = 'none';
+  document.querySelector('.dots-row').style.display = 'none';
+  document.getElementById('solved-banner').classList.add('show');
+  localStorage.setItem(GAME_KEY, '1');
+  localStorage.setItem(CODE_KEY, GAME_CODE);
+  launchConfetti();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+if (checkAccess()) {
+  document.getElementById('game-area').style.display = 'block';
+  if (localStorage.getItem(GAME_KEY) === '1') {
+    document.getElementById('solved-banner').classList.add('show');
+    document.getElementById('scr-card').style.display = 'none';
+    document.querySelector('.dots-row').style.display = 'none';
+  } else {
+    startGame();
+  }
+}
+</script>
+</body>
+</html>

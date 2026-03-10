@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Game Hub 🎮 — Section 2</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.s2-header { text-align:center; padding:3rem 1.5rem 1.5rem; }
+.game-grid {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:1.4rem; padding:1rem 1.5rem 2rem; max-width:1200px; margin:0 auto;
+}
+.gc {
+  background:var(--bg-card); border:1px solid var(--border-rose);
+  border-radius:22px; padding:2rem; text-align:center;
+  transition:all .35s; position:relative; overflow:hidden; cursor:pointer;
+}
+.gc::before {
+  content:''; position:absolute; inset:0; border-radius:22px;
+  background:radial-gradient(circle at 50% 0%,rgba(201,24,74,.07),transparent 70%);
+  pointer-events:none;
+}
+.gc.locked   { opacity:.55; filter:grayscale(.6); cursor:not-allowed; }
+.gc.available { border-color:rgba(201,24,74,.55); box-shadow:var(--shadow-rose); }
+.gc.completed { border-color:rgba(0,255,136,.45); box-shadow:0 0 22px rgba(0,255,136,.2); }
+.gc.expired  { border-color:rgba(255,120,0,.3); opacity:.6; cursor:not-allowed; }
+.gc.available:hover { transform:translateY(-5px); box-shadow:0 0 35px rgba(201,24,74,.5); }
+
+.gc-week  { font-size:.7rem; letter-spacing:3px; text-transform:uppercase; color:var(--dim); margin-bottom:.4rem; }
+.gc-icon  { font-size:3rem; margin:.8rem 0; }
+.gc-name  { font-family:'Playfair Display',serif; font-size:1.25rem; margin-bottom:.4rem; }
+.gc-desc  { font-size:.8rem; color:var(--dim); margin-bottom:1.2rem; line-height:1.6; }
+.gc-dates { font-size:.72rem; color:var(--dimmer); margin-top:.4rem; }
+
+.status-badge {
+  display:inline-flex; align-items:center; gap:.3rem;
+  padding:.28rem .8rem; border-radius:50px; font-size:.7rem; font-weight:600; letter-spacing:1px;
+}
+.st-locked   { background:rgba(255,255,255,.08); color:var(--dim); border:1px solid rgba(255,255,255,.1); }
+.st-available{ background:rgba(201,24,74,.18); color:var(--rose-bright); border:1px solid rgba(201,24,74,.4); }
+.st-completed{ background:rgba(0,255,136,.12); color:var(--green); border:1px solid rgba(0,255,136,.35); }
+.st-expired  { background:rgba(255,120,0,.12); color:#ff8040; border:1px solid rgba(255,120,0,.3); }
+
+.gc-code-chip {
+  margin-top:.8rem; padding:.4rem 1rem;
+  background:rgba(0,255,136,.08); border:1px solid rgba(0,255,136,.35);
+  border-radius:8px; font-family:'Courier New',monospace;
+  font-size:.95rem; color:var(--green); letter-spacing:3px;
+  text-shadow:0 0 8px rgba(0,255,136,.4);
+}
+
+/* Codes panel */
+.codes-panel {
+  max-width:700px; margin:2rem auto; padding:1.8rem;
+  background:rgba(20,8,35,.95); border:1px solid rgba(255,215,0,.3);
+  border-radius:22px; text-align:center;
+  box-shadow:0 0 30px rgba(255,215,0,.1);
+}
+.codes-panel h3 { font-family:'Playfair Display',serif; color:var(--gold); margin-bottom:.4rem; font-size:1.2rem; }
+.codes-panel p  { font-size:.8rem; color:var(--dim); margin-bottom:1.2rem; }
+.code-chips-row { display:flex; flex-wrap:wrap; gap:.6rem; justify-content:center; margin-bottom:1.5rem; }
+.chip {
+  padding:.35rem .9rem; border-radius:8px; font-family:'Courier New',monospace;
+  font-size:.88rem; border:1px solid;
+}
+.chip.got  { background:rgba(0,255,136,.1); border-color:rgba(0,255,136,.4); color:var(--green); }
+.chip.miss { background:rgba(255,255,255,.04); border-color:rgba(255,255,255,.1); color:rgba(255,255,255,.2); }
+
+/* Lock screen overlay for redirect protection */
+.auth-block {
+  min-height:calc(100vh - 68px);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:2rem; gap:1.2rem;
+}
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+
+<nav class="nav">
+  <a href="section1.html" class="nav-logo" style="cursor:pointer;">💗 RyZeria</a>
+  <button class="music-btn" id="music-btn" onclick="toggleMusic()">
+    🎵 <span class="music-disc paused" id="disc">🎵</span> Musik Off
+  </button>
+</nav>
+
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+
+<main class="page" id="main-content" style="display:none;">
+
+  <div class="s2-header">
+    <div class="eyebrow-tag">🎮 Section 2</div>
+    <div class="divider"></div>
+    <h1 style="font-family:'Playfair Display',serif; font-size:clamp(1.8rem,5vw,3rem); margin:.8rem 0;">
+      Petualangan <span style="background:var(--grad-rose);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">5 Minggu</span>
+    </h1>
+    <p style="color:var(--dim); max-width:540px; margin:0 auto; line-height:1.8; font-size:.9rem;">
+      Ada 5 mini-game untukmu! Setiap game terbuka setiap 7 hari mulai 10 Maret 2026.
+      Selesaikan setiap game untuk mendapatkan kode rahasia. Kumpulkan semua 5 kode untuk membuka Section 3! 🔑
+    </p>
+  </div>
+
+  <!-- GAME GRID -->
+  <div class="game-grid" id="game-grid">
+    <!-- Filled by JS -->
+  </div>
+
+  <!-- CODES PANEL -->
+  <div class="codes-panel">
+    <h3>🔑 Kode yang Terkumpul</h3>
+    <p>Selesaikan semua game untuk mengumpulkan 5 kode rahasia!</p>
+    <div class="code-chips-row" id="code-chips"></div>
+    <button class="btn btn-gold" id="s3-btn" onclick="goSection3()" style="display:none;">
+      ✨ Buka Section 3 — Grand Finale!
+    </button>
+    <p id="codes-hint" style="font-size:.78rem; color:var(--dim); margin-top:.5rem;"></p>
+  </div>
+
+</main>
+
+<!-- AUTH BLOCK (shown if not passed section 1) -->
+<div class="page auth-block" id="auth-block" style="display:none;">
+  <div class="lock-icon">🔐</div>
+  <h2 class="lock-title" style="font-family:'Playfair Display',serif; font-size:2rem;">Akses Terkunci</h2>
+  <p class="lock-msg">Kamu harus menyelesaikan Section 1 terlebih dahulu! Dengarkan sandi morse dan masukkan kata sandi yang benar.</p>
+  <a href="section1.html" class="btn btn-rose">🔊 Ke Section 1</a>
+</div>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal">
+    <div class="modal-icon">✨</div>
+    <div class="modal-title"></div>
+    <div class="modal-body"></div>
+    <div class="modal-code hidden"></div>
+    <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+initParticles('particles');
+
+// ─── AUTH CHECK ────────────────────────────────────────────────
+const passed = localStorage.getItem('s1_passed') === '1';
+document.getElementById(passed ? 'main-content' : 'auth-block').style.display = 'block';
+
+// ─── BG MUSIC ─────────────────────────────────────────────────
+const bgAudio = document.getElementById('bg-audio');
+let bgOn = sessionStorage.getItem('music_on') === '1';
+if (bgOn) bgAudio.play().catch(()=>{});
+syncMusicBtn();
+
+function toggleMusic() {
+  bgOn = !bgOn;
+  bgOn ? bgAudio.play().catch(()=>{}) : bgAudio.pause();
+  sessionStorage.setItem('music_on', bgOn ? '1' : '0');
+  syncMusicBtn();
+}
+function syncMusicBtn() {
+  document.getElementById('music-btn').innerHTML = bgOn
+    ? '🎵 <span class="music-disc">🎵</span> Musik On'
+    : '🎵 <span class="music-disc paused">🎵</span> Musik Off';
+}
+
+// ─── GAME DEFINITIONS ─────────────────────────────────────────
+const GAMES = [
+  {
+    id:1, icon:'🧩', name:'Puzzle Geser',
+    desc:'Geser potongan puzzle untuk menyusun gambar yang benar! Uji kesabaran dan strategimu.',
+    url:'game1.html',
+    startStr:'10 Mar', endStr:'17 Mar',
+  },
+  {
+    id:2, icon:'🃏', name:'Kartu Memori',
+    desc:'Temukan pasangan kartu yang cocok! Uji daya ingatmu dengan kartu-kartu penuh kenangan.',
+    url:'game2.html',
+    startStr:'17 Mar', endStr:'24 Mar',
+  },
+  {
+    id:3, icon:'🔍', name:'Cari Kata',
+    desc:'Temukan kata-kata tersembunyi dalam kisi huruf! Ada kata-kata spesial tentang kita.',
+    url:'game3.html',
+    startStr:'24 Mar', endStr:'31 Mar',
+  },
+  {
+    id:4, icon:'💭', name:'Kuis Cinta',
+    desc:'Seberapa baik kamu mengenalku? Jawab 5 pertanyaan tentang kisah kita berdua!',
+    url:'game4.html',
+    startStr:'31 Mar', endStr:'7 Apr',
+  },
+  {
+    id:5, icon:'🔤', name:'Susun Kata',
+    desc:'Acak-acak huruf sudah menunggu! Susun kembali huruf-huruf menjadi kata yang bermakna.',
+    url:'game5.html',
+    startStr:'7 Apr', endStr:'14 Apr',
+  },
+];
+
+// ─── BUILD GAME CARDS ──────────────────────────────────────────
+function buildGrid() {
+  const grid = document.getElementById('game-grid');
+  grid.innerHTML = '';
+
+  GAMES.forEach((g, i) => {
+    const st = getGameStatus(i);
+    const code = localStorage.getItem(`game${g.id}_code`);
+
+    const card = document.createElement('div');
+    card.className = `gc ${st}`;
+
+    let badgeHtml, actionHtml = '';
+    if (st === 'completed') {
+      badgeHtml = `<span class="status-badge st-completed">✅ Selesai</span>`;
+      actionHtml = code ? `<div class="gc-code-chip">Kode: ${code}</div>` : '';
+    } else if (st === 'available') {
+      badgeHtml = `<span class="status-badge st-available">🎮 Mainkan!</span>`;
+      actionHtml = `<button class="btn btn-rose btn-sm mt-2" onclick="goGame('${g.url}')">Mulai Game →</button>`;
+    } else if (st === 'expired') {
+      badgeHtml = `<span class="status-badge st-expired">⏰ Waktu Habis</span>`;
+    } else {
+      badgeHtml = `<span class="status-badge st-locked">🔒 Belum Buka</span>`;
+    }
+
+    card.innerHTML = `
+      <div class="gc-week">Minggu ${i+1}</div>
+      <div class="gc-icon">${g.icon}</div>
+      <div class="gc-name">${g.name}</div>
+      <div class="gc-desc">${g.desc}</div>
+      ${badgeHtml}
+      ${actionHtml}
+      <div class="gc-dates">Tersedia: ${g.startStr} – ${g.endStr} Mar/Apr 2026</div>
+    `;
+
+    if (st === 'available') card.addEventListener('dblclick', () => goGame(g.url));
+    grid.appendChild(card);
+  });
+}
+
+function goGame(url) { window.location.href = url; }
+
+// ─── CODES PANEL ──────────────────────────────────────────────
+function buildCodesPanel() {
+  const GAME_SCHEDULE = [
+    { id:1, code:'Unl6M0' },
+    { id:2, code:'chdDRI' },
+    { id:3, code:'NHBQeT' },
+    { id:4, code:'RuTiF2' },
+    { id:5, code:'M3JTQHJZ' },
+  ];
+
+  const row = document.getElementById('code-chips');
+  row.innerHTML = '';
+  let collected = 0;
+
+  GAME_SCHEDULE.forEach(g => {
+    const saved = localStorage.getItem(`game${g.id}_code`);
+    const chip = document.createElement('div');
+    chip.className = 'chip ' + (saved ? 'got' : 'miss');
+    chip.textContent = saved ? saved : '???????';
+    row.appendChild(chip);
+    if (saved) collected++;
+  });
+
+  const hint = document.getElementById('codes-hint');
+  const btn  = document.getElementById('s3-btn');
+  if (collected === 5) {
+    hint.textContent = '🎉 Semua kode terkumpul! Buka Section 3 sekarang!';
+    btn.style.display = 'inline-flex';
+  } else {
+    hint.textContent = `${collected}/5 kode terkumpul. Selesaikan lebih banyak game!`;
+    btn.style.display = 'none';
+  }
+}
+
+function goSection3() {
+  window.location.href = 'section3.html';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+if (passed) { buildGrid(); buildCodesPanel(); }
+</script>
+</body>
+</html>

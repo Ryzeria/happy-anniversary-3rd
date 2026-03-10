@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kartu Memori 🃏 — Game 2</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.g-content { max-width:520px; margin:0 auto; padding:1.5rem 1rem; text-align:center; }
+.g-desc { font-size:.85rem; color:var(--dim); margin-bottom:1.5rem; line-height:1.7; }
+.mem-grid-wrap { padding:.5rem; }
+.mem-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; max-width:460px; margin:0 auto; }
+.mem-card { aspect-ratio:1; cursor:pointer; perspective:900px; }
+.mem-inner {
+  width:100%; height:100%; position:relative;
+  transform-style:preserve-3d; transition:transform .5s cubic-bezier(.4,0,.2,1);
+}
+.mem-card.flip .mem-inner, .mem-card.matched .mem-inner { transform:rotateY(180deg); }
+.mem-front, .mem-back {
+  position:absolute; inset:0; backface-visibility:hidden;
+  border-radius:14px; display:flex; align-items:center; justify-content:center;
+  font-size:1.9rem;
+}
+.mem-front {
+  background:linear-gradient(135deg,#1a0533,#0d0221);
+  border:2px solid rgba(201,24,74,.35);
+}
+.mem-front::after { content:'💗'; font-size:1.4rem; }
+.mem-back {
+  background:rgba(201,24,74,.12);
+  border:2px solid var(--rose);
+  transform:rotateY(180deg);
+}
+.mem-card.matched .mem-back {
+  background:rgba(0,255,136,.12);
+  border-color:rgba(0,255,136,.5);
+  animation:matchBounce .5s ease;
+}
+@keyframes matchBounce {
+  0%{transform:rotateY(180deg) scale(1)}
+  50%{transform:rotateY(180deg) scale(1.12)}
+  100%{transform:rotateY(180deg) scale(1)}
+}
+.mem-stats {
+  display:flex; justify-content:space-around; align-items:center;
+  padding:.8rem; background:rgba(0,0,0,.3); border-radius:12px; margin-top:.8rem;
+}
+.m-stat { text-align:center; }
+.m-num { font-size:1.3rem; font-weight:700; color:var(--gold); font-family:'Playfair Display',serif; }
+.m-lbl { font-size:.65rem; letter-spacing:1px; text-transform:uppercase; color:var(--dim); }
+
+.pair-label {
+  font-size:.72rem; color:var(--rose-bright);
+  letter-spacing:1.5px; text-transform:uppercase;
+  margin-bottom:.6rem; display:block;
+}
+.solved-banner { display:none; padding:1.5rem; background:rgba(0,255,136,.08); border:1px solid rgba(0,255,136,.4); border-radius:16px; margin-bottom:1.2rem; }
+.solved-banner.show { display:block; animation:fadeIn .6s ease; }
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+
+<div class="g-nav">
+  <a href="section2.html" class="g-back">← Kembali</a>
+  <span class="g-nav-title">🃏 Kartu Memori — Minggu 2</span>
+  <div class="g-stat">Pasang: <strong id="pair-count">0</strong>/8</div>
+</div>
+
+<main style="position:relative;z-index:2;">
+
+<div id="lock-screen" class="lock-screen" style="display:none;">
+  <div class="lock-icon" id="lock-icon">🔒</div>
+  <h2 class="lock-title" id="lock-title">Game Terkunci</h2>
+  <p class="lock-msg" id="lock-msg">Game ini belum tersedia.</p>
+  <a href="section2.html" class="btn btn-rose">← Game Hub</a>
+</div>
+
+<div id="game-area" class="g-content" style="display:none;">
+
+  <div class="badge" style="margin-bottom:1rem;">🃏 Minggu 2 — 17–23 Mar 2026</div>
+  <h2 style="font-family:'Playfair Display',serif; font-size:1.6rem; margin-bottom:.5rem;">Kartu Memori</h2>
+  <p class="g-desc">
+    Temukan 8 pasang kartu yang cocok! Klik satu kartu, lalu cari pasangannya. Hafal posisi kartu untuk skor terbaik! 🧠
+  </p>
+
+  <div class="solved-banner" id="solved-banner">
+    <div style="font-size:2rem; margin-bottom:.5rem;">🎊</div>
+    <div style="font-family:'Playfair Display',serif; font-size:1.4rem; color:var(--green); margin-bottom:.5rem;">Semua Pasangan Ditemukan!</div>
+    <div style="font-size:.85rem; color:var(--dim); margin-bottom:1rem;">
+      Hebat! Kamu berhasil dengan <strong id="final-flips" style="color:var(--gold);">0</strong> balik kartu!<br>
+      Ini kode rahasiamu! 🔑
+    </div>
+    <div style="padding:.8rem 2rem; background:rgba(0,255,136,.08); border:2px solid rgba(0,255,136,.4); border-radius:12px; font-family:'Courier New',monospace; font-size:1.6rem; color:var(--green); letter-spacing:5px; display:inline-block;">
+      chdDRI
+    </div>
+    <div style="margin-top:1.2rem; display:flex; gap:.8rem; justify-content:center; flex-wrap:wrap;">
+      <a href="section2.html" class="btn btn-rose btn-sm">← Game Hub</a>
+      <button class="btn btn-outline btn-sm" onclick="initGame()">Main Lagi</button>
+    </div>
+  </div>
+
+  <span class="pair-label">Pasangan ditemukan: <span id="pairs-found">0</span> / 8</span>
+
+  <div class="mem-grid-wrap">
+    <div class="mem-grid" id="mem-grid"></div>
+    <div class="mem-stats">
+      <div class="m-stat"><div class="m-num" id="flips">0</div><div class="m-lbl">Balik</div></div>
+      <button class="btn btn-outline btn-sm" onclick="initGame()">🔀 Ulang</button>
+      <div class="m-stat"><div class="m-num" id="pairs">0</div><div class="m-lbl">Pasangan</div></div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal"><div class="modal-icon">✨</div><div class="modal-title"></div>
+  <div class="modal-body"></div><div class="modal-code hidden"></div>
+  <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button></div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+const bgAudio = document.getElementById('bg-audio');
+if (sessionStorage.getItem('music_on') === '1') bgAudio.play().catch(()=>{});
+
+const GAME_IDX  = 1;
+const GAME_CODE = 'chdDRI';
+const GAME_KEY  = 'game2_done';
+const CODE_KEY  = 'game2_code';
+
+// Cards: 8 pairs, each with emoji + label
+const CARD_PAIRS = [
+  { emoji:'🌺', label:'Anggrek Bulan' },
+  { emoji:'🦡', label:'Musang Bulan'  },
+  { emoji:'🥟', label:'Dimsum'        },
+  { emoji:'🦆', label:'Bebek Kita'   },
+  { emoji:'📚', label:'Novel Favorit' },
+  { emoji:'🎓', label:'ITS & Airlangga'},
+  { emoji:'🎭', label:'Roleplay'      },
+  { emoji:'💜', label:'Discord Date'  },
+];
+
+let deck = [];
+let flipped = [], matched = 0, flipsCount = 0;
+let waiting = false;
+
+function checkAccess() {
+  if (localStorage.getItem('s1_passed') !== '1') {
+    showLock('🔐','Akses Ditolak','Selesaikan Section 1 dulu!'); return false;
+  }
+  const st = getGameStatus(GAME_IDX);
+  if (st === 'locked')   { showLock('🔒','Belum Tersedia','Tersedia mulai 17 Maret 2026.'); return false; }
+  if (st === 'expired')  { showLock('⏰','Waktu Habis','Waktu game ini sudah habis.'); return false; }
+  return true;
+}
+function showLock(icon, title, msg) {
+  document.getElementById('lock-screen').style.display = 'flex';
+  document.getElementById('lock-icon').textContent = icon;
+  document.getElementById('lock-title').textContent = title;
+  document.getElementById('lock-msg').textContent   = msg;
+}
+
+function initGame() {
+  matched = 0; flipsCount = 0; flipped = []; waiting = false;
+  document.getElementById('flips').textContent       = '0';
+  document.getElementById('pairs').textContent       = '0';
+  document.getElementById('pairs-found').textContent = '0';
+  document.getElementById('pair-count').textContent  = '0';
+  document.getElementById('solved-banner').classList.remove('show');
+
+  // Build shuffled deck (2 of each)
+  deck = [...CARD_PAIRS, ...CARD_PAIRS]
+    .map((c,i) => ({ ...c, id:i, pairId:CARD_PAIRS.indexOf(c) % CARD_PAIRS.length, matched:false, flipped:false }))
+    .sort(() => Math.random() - .5);
+
+  renderGrid();
+}
+
+function renderGrid() {
+  const grid = document.getElementById('mem-grid');
+  grid.innerHTML = '';
+  deck.forEach((card, i) => {
+    const el = document.createElement('div');
+    el.className = 'mem-card' +
+      (card.flipped  ? ' flip'    : '') +
+      (card.matched  ? ' matched' : '');
+    el.innerHTML = `
+      <div class="mem-inner">
+        <div class="mem-front"></div>
+        <div class="mem-back">${card.emoji}</div>
+      </div>`;
+    if (!card.matched && !card.flipped) el.onclick = () => flipCard(i, el);
+    grid.appendChild(el);
+  });
+}
+
+function flipCard(idx, el) {
+  if (waiting || deck[idx].matched || deck[idx].flipped) return;
+
+  deck[idx].flipped = true;
+  el.classList.add('flip');
+  flipped.push(idx);
+  flipsCount++;
+  document.getElementById('flips').textContent = flipsCount;
+
+  if (flipped.length === 2) {
+    waiting = true;
+    const [a, b] = flipped;
+    if (deck[a].pairId === deck[b].pairId) {
+      // Match!
+      setTimeout(() => {
+        deck[a].matched = deck[b].matched = true;
+        matched++;
+        document.getElementById('pairs').textContent       = matched;
+        document.getElementById('pairs-found').textContent = matched;
+        document.getElementById('pair-count').textContent  = matched;
+        renderGrid();
+        flipped = []; waiting = false;
+        if (matched === 8) onSolved();
+      }, 500);
+    } else {
+      // No match
+      setTimeout(() => {
+        deck[a].flipped = deck[b].flipped = false;
+        renderGrid();
+        flipped = []; waiting = false;
+      }, 1000);
+    }
+  }
+}
+
+function onSolved() {
+  document.getElementById('solved-banner').classList.add('show');
+  document.getElementById('final-flips').textContent = flipsCount;
+  localStorage.setItem(GAME_KEY, '1');
+  localStorage.setItem(CODE_KEY, GAME_CODE);
+  launchConfetti();
+  document.getElementById('mem-grid').style.pointerEvents = 'none';
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+if (checkAccess()) {
+  document.getElementById('game-area').style.display = 'block';
+  if (localStorage.getItem(GAME_KEY) === '1') {
+    document.getElementById('solved-banner').classList.add('show');
+    document.getElementById('mem-grid').style.display = 'none';
+    document.getElementById('final-flips').textContent = '?';
+    document.querySelector('.mem-stats').style.display = 'none';
+  } else {
+    initGame();
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Cari Kata 🔍 — Game 3</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.g-content  { max-width:600px; margin:0 auto; padding:1.2rem 1rem; text-align:center; }
+.g-desc     { font-size:.82rem; color:var(--dim); margin-bottom:1rem; line-height:1.7; }
+.ws-outer   { overflow-x:auto; }
+.ws-grid    {
+  display:inline-grid; gap:2px;
+  background:rgba(0,0,0,.35); padding:.7rem;
+  border-radius:14px; border:1px solid var(--border-rose);
+  user-select:none;
+}
+.ws-cell {
+  width:30px; height:30px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.82rem; font-weight:700;
+  border-radius:5px; cursor:pointer;
+  transition:background .12s, color .12s;
+  color:var(--white);
+}
+.ws-cell:hover { background:rgba(201,24,74,.28); }
+.ws-cell.sel   { background:rgba(255,215,0,.35); color:var(--gold); }
+.ws-cell.found { background:rgba(0,255,136,.22); color:var(--green); }
+
+.word-list  {
+  display:flex; flex-wrap:wrap; gap:.4rem;
+  justify-content:center; margin:.8rem 0;
+}
+.w-chip {
+  padding:.25rem .75rem; border-radius:50px; font-size:.75rem; font-weight:600;
+  border:1px solid rgba(201,24,74,.45); color:var(--rose-bright);
+  background:rgba(201,24,74,.1); transition:all .3s;
+}
+.w-chip.found { text-decoration:line-through; opacity:.45;
+  background:rgba(0,255,136,.1); border-color:rgba(0,255,136,.35); color:var(--green); }
+
+.hint-row { font-size:.72rem; color:var(--dim); margin:.5rem 0; }
+
+.solved-banner { display:none; padding:1.5rem;
+  background:rgba(0,255,136,.08); border:1px solid rgba(0,255,136,.4);
+  border-radius:16px; margin-bottom:1rem; }
+.solved-banner.show { display:block; animation:fadeIn .6s ease; }
+</style>
+</head>
+<body>
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+
+<div class="g-nav">
+  <a href="section2.html" class="g-back">← Kembali</a>
+  <span class="g-nav-title">🔍 Cari Kata — Minggu 3</span>
+  <div class="g-stat">Kata: <strong id="found-count">0</strong>/8</div>
+</div>
+
+<main style="position:relative;z-index:2;">
+
+<div id="lock-screen" class="lock-screen" style="display:none;">
+  <div class="lock-icon" id="lock-icon">🔒</div>
+  <h2 class="lock-title" id="lock-title">Game Terkunci</h2>
+  <p class="lock-msg"  id="lock-msg">Game ini belum tersedia.</p>
+  <a href="section2.html" class="btn btn-rose">← Game Hub</a>
+</div>
+
+<div id="game-area" class="g-content" style="display:none;">
+
+  <div class="badge" style="margin-bottom:.8rem;">🔍 Minggu 3 — 24–30 Mar 2026</div>
+  <h2 style="font-family:'Playfair Display',serif; font-size:1.5rem; margin-bottom:.4rem;">Cari Kata</h2>
+  <p class="g-desc">
+    Temukan 8 kata tersembunyi yang berkaitan dengan kisah kita!
+    Klik sel pertama → klik sel terakhir dalam satu garis lurus. 🔍
+  </p>
+
+  <div class="solved-banner" id="solved-banner">
+    <div style="font-size:2rem;margin-bottom:.4rem;">🎉</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--green);margin-bottom:.4rem;">Semua Kata Ditemukan!</div>
+    <div style="font-size:.83rem;color:var(--dim);margin-bottom:1rem;">Kamu menemukan semua 8 kata! Ini kode rahasiamu! 🔑</div>
+    <div style="padding:.8rem 2rem;background:rgba(0,255,136,.08);border:2px solid rgba(0,255,136,.4);border-radius:12px;font-family:'Courier New',monospace;font-size:1.6rem;color:var(--green);letter-spacing:5px;display:inline-block;">NHBQeT</div>
+    <div style="margin-top:1.2rem;display:flex;gap:.8rem;justify-content:center;flex-wrap:wrap;">
+      <a href="section2.html" class="btn btn-rose btn-sm">← Game Hub</a>
+      <button class="btn btn-outline btn-sm" onclick="startGame()">Main Lagi</button>
+    </div>
+  </div>
+
+  <div class="word-list" id="word-list"></div>
+
+  <div class="hint-row" id="hint-row">Klik sel awal kata, lalu klik sel akhir kata ✨</div>
+
+  <div class="ws-outer">
+    <div class="ws-grid" id="ws-grid"></div>
+  </div>
+
+  <button class="btn btn-outline btn-sm mt-2" onclick="startGame()">🔀 Generate Ulang</button>
+
+</div>
+</main>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal"><div class="modal-icon">✨</div><div class="modal-title"></div>
+  <div class="modal-body"></div><div class="modal-code hidden"></div>
+  <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button></div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+const bgAudio = document.getElementById('bg-audio');
+if (sessionStorage.getItem('music_on') === '1') bgAudio.play().catch(()=>{});
+
+const GAME_IDX  = 2;
+const GAME_CODE = 'NHBQeT';
+const GAME_KEY  = 'game3_done';
+const CODE_KEY  = 'game3_code';
+
+const WORDS = ['ANGGITA','MAGETAN','MOCHIZUKI','DISCORD','SURABAYA','DIMSUM','AIRLANGGA','BIOLOGI'];
+const COLS = 12, ROWS = 13;
+const DIRS = [[0,1],[1,0],[0,-1],[-1,0],[1,1],[1,-1],[-1,1],[-1,-1]];
+
+let grid = [], wordMeta = {}, foundWords = new Set();
+let startCell = null;
+
+function checkAccess() {
+  if (localStorage.getItem('s1_passed') !== '1') {
+    showLock('🔐','Akses Ditolak','Selesaikan Section 1 dulu!'); return false;
+  }
+  const st = getGameStatus(GAME_IDX);
+  if (st === 'locked')  { showLock('🔒','Belum Tersedia','Tersedia mulai 24 Maret 2026.'); return false; }
+  if (st === 'expired') { showLock('⏰','Waktu Habis','Waktu game ini sudah habis.'); return false; }
+  return true;
+}
+function showLock(icon, title, msg) {
+  document.getElementById('lock-screen').style.display = 'flex';
+  document.getElementById('lock-icon').textContent = icon;
+  document.getElementById('lock-title').textContent = title;
+  document.getElementById('lock-msg').textContent   = msg;
+}
+
+/* ── Word Search Generator ─────────────────────────────────── */
+function generateGrid() {
+  grid = Array.from({length:ROWS}, () => Array(COLS).fill(null));
+  wordMeta = {};
+
+  // Sort words longest-first for easier placement
+  const sorted = [...WORDS].sort((a,b) => b.length - a.length);
+
+  for (const word of sorted) {
+    let placed = false;
+    const shuffledDirs = DIRS.slice().sort(() => Math.random() - .5);
+    outer: for (let t = 0; t < 300 && !placed; t++) {
+      const [dr, dc] = shuffledDirs[t % shuffledDirs.length];
+      const r0 = Math.floor(Math.random() * ROWS);
+      const c0 = Math.floor(Math.random() * COLS);
+      const rE = r0 + dr * (word.length - 1);
+      const cE = c0 + dc * (word.length - 1);
+      if (rE < 0 || rE >= ROWS || cE < 0 || cE >= COLS) continue;
+      for (let i = 0; i < word.length; i++) {
+        const r = r0 + dr*i, c = c0 + dc*i;
+        if (grid[r][c] !== null && grid[r][c] !== word[i]) continue outer;
+      }
+      for (let i = 0; i < word.length; i++) grid[r0+dr*i][c0+dc*i] = word[i];
+      wordMeta[word] = { r:r0, c:c0, dr, dc };
+      placed = true;
+    }
+    if (!placed) console.warn('Could not place:', word);
+  }
+
+  const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (!grid[r][c]) grid[r][c] = ALPHA[Math.floor(Math.random() * 26)];
+}
+
+function renderGrid() {
+  const el = document.getElementById('ws-grid');
+  el.style.gridTemplateColumns = `repeat(${COLS},30px)`;
+  el.innerHTML = '';
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const cell = document.createElement('div');
+      cell.className = 'ws-cell';
+      cell.textContent = grid[r][c];
+      cell.dataset.r = r; cell.dataset.c = c;
+      cell.addEventListener('click', onCellClick);
+      el.appendChild(cell);
+    }
+  }
+}
+
+function renderWordList() {
+  const el = document.getElementById('word-list');
+  el.innerHTML = '';
+  WORDS.forEach(w => {
+    const chip = document.createElement('div');
+    chip.className = 'w-chip' + (foundWords.has(w) ? ' found' : '');
+    chip.id = 'chip-' + w;
+    chip.textContent = w;
+    el.appendChild(chip);
+  });
+}
+
+function clearSelection() {
+  document.querySelectorAll('.ws-cell.sel').forEach(c => c.classList.remove('sel'));
+  startCell = null;
+  document.getElementById('hint-row').textContent = 'Klik sel awal kata, lalu klik sel akhir kata ✨';
+}
+
+function onCellClick(e) {
+  const r = +e.currentTarget.dataset.r;
+  const c = +e.currentTarget.dataset.c;
+  if (e.currentTarget.classList.contains('found')) { clearSelection(); return; }
+
+  if (!startCell) {
+    startCell = {r, c};
+    e.currentTarget.classList.add('sel');
+    document.getElementById('hint-row').textContent = `Awal: (${r},${c}) — sekarang klik sel akhir`;
+    return;
+  }
+
+  // Determine direction from start to this cell
+  const dr = r - startCell.r;
+  const dc = c - startCell.c;
+
+  // Must be straight line
+  const len = Math.max(Math.abs(dr), Math.abs(dc));
+  if (len === 0) { clearSelection(); return; }
+  if (!(dr === 0 || dc === 0 || Math.abs(dr) === Math.abs(dc))) {
+    toast('Pilih sel dalam satu garis lurus! ↔️↕️↗️', 'err');
+    clearSelection(); return;
+  }
+
+  const unitR = dr === 0 ? 0 : dr / Math.abs(dr);
+  const unitC = dc === 0 ? 0 : dc / Math.abs(dc);
+
+  // Collect letters along the path
+  let letters = '';
+  const cells = [];
+  for (let i = 0; i <= len; i++) {
+    const ri = startCell.r + unitR * i;
+    const ci = startCell.c + unitC * i;
+    letters += grid[ri][ci];
+    cells.push({r:ri, c:ci});
+  }
+
+  const reverse = letters.split('').reverse().join('');
+  const matchWord = WORDS.find(w => (w === letters || w === reverse) && !foundWords.has(w));
+
+  if (matchWord) {
+    foundWords.add(matchWord);
+    cells.forEach(({r,c}) => {
+      const idx = r * COLS + c;
+      const el  = document.getElementById('ws-grid').children[idx];
+      if (el) { el.classList.remove('sel'); el.classList.add('found'); }
+    });
+    document.getElementById('chip-' + matchWord).classList.add('found');
+    document.getElementById('found-count').textContent = foundWords.size;
+    toast(`✅ "${matchWord}" ditemukan!`, 'ok');
+    startCell = null;
+    if (foundWords.size === WORDS.length) setTimeout(onSolved, 400);
+  } else {
+    toast('Tidak cocok, coba lagi! 🔄', 'err');
+    clearSelection();
+  }
+}
+
+function onSolved() {
+  document.getElementById('solved-banner').classList.add('show');
+  localStorage.setItem(GAME_KEY, '1');
+  localStorage.setItem(CODE_KEY, GAME_CODE);
+  launchConfetti();
+}
+
+function startGame() {
+  foundWords.clear();
+  startCell = null;
+  document.getElementById('found-count').textContent = '0';
+  document.getElementById('solved-banner').classList.remove('show');
+  generateGrid();
+  renderGrid();
+  renderWordList();
+}
+
+// ─── INIT ─────────────────────────────────────────────────────
+if (checkAccess()) {
+  document.getElementById('game-area').style.display = 'block';
+  if (localStorage.getItem(GAME_KEY) === '1') {
+    document.getElementById('solved-banner').classList.add('show');
+  }
+  startGame();
+}
+</script>
+</body>
+</html>

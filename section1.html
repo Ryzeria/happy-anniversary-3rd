@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sandi Morse 🔐 — Section 1</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+.s1-hero {
+  min-height:calc(100vh - 68px);
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+  text-align:center; padding:2rem 1.5rem; gap:1.2rem;
+}
+.morse-visual {
+  display:flex; flex-wrap:wrap; justify-content:center;
+  align-items:center; gap:6px;
+  padding:1.2rem 1.5rem;
+  background:rgba(0,0,0,.4); border-radius:16px;
+  border:1px solid var(--border-rose);
+  max-width:480px; min-height:70px;
+}
+.m-dot {
+  width:10px; height:10px; border-radius:50%;
+  background:var(--rose); display:inline-block;
+  animation:mpulse 1.2s ease-in-out infinite;
+}
+.m-dash {
+  width:30px; height:10px; border-radius:5px;
+  background:var(--rose); display:inline-block;
+  animation:mpulse 1.2s ease-in-out infinite;
+}
+.m-gap { width:14px; display:inline-block; }
+@keyframes mpulse {
+  0%,100% { opacity:.25; box-shadow:none; }
+  50% { opacity:1; box-shadow:0 0 12px var(--rose); }
+}
+.m-dot:nth-child(2n)   { animation-delay:.2s; }
+.m-dot:nth-child(3n)   { animation-delay:.4s; }
+.m-dash:nth-child(2n)  { animation-delay:.3s; }
+.m-dash:nth-child(3n)  { animation-delay:.6s; }
+
+.audio-card {
+  background:var(--bg-card); border:1px solid var(--border-rose);
+  border-radius:22px; padding:2rem; text-align:center;
+  max-width:420px; width:100%;
+}
+.audio-card h3 {
+  font-family:'Playfair Display',serif; font-size:1.3rem;
+  margin-bottom:.5rem; color:var(--pink);
+}
+.audio-card p { font-size:.82rem; color:var(--dim); margin-bottom:1.2rem; line-height:1.7; }
+
+.visualizer {
+  display:flex; align-items:flex-end; justify-content:center;
+  gap:4px; height:50px; margin:1rem 0; overflow:hidden;
+}
+.v-bar {
+  width:7px; border-radius:3px 3px 0 0;
+  background:var(--grad-rose);
+  transition:height .1s;
+  animation:vbar 1s ease-in-out infinite;
+}
+.v-bar:nth-child(1) { animation-delay:0s; }
+.v-bar:nth-child(2) { animation-delay:.1s; }
+.v-bar:nth-child(3) { animation-delay:.2s; }
+.v-bar:nth-child(4) { animation-delay:.3s; }
+.v-bar:nth-child(5) { animation-delay:.4s; }
+.v-bar:nth-child(6) { animation-delay:.3s; }
+.v-bar:nth-child(7) { animation-delay:.2s; }
+.v-bar:nth-child(8) { animation-delay:.1s; }
+.v-bar.stopped { animation:none; height:4px !important; }
+@keyframes vbar {
+  0%,100% { height:6px; }
+  50% { height:45px; }
+}
+
+.audio-controls { display:flex; align-items:center; justify-content:center; gap:1rem; margin-top:.8rem; }
+.a-btn {
+  width:50px; height:50px; border-radius:50%;
+  background:var(--grad-rose); border:none; color:#fff;
+  font-size:1.3rem; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .3s; box-shadow:var(--shadow-rose);
+}
+.a-btn:hover { transform:scale(1.1); }
+.a-btn.secondary {
+  background:rgba(201,24,74,.2); border:1px solid rgba(201,24,74,.4); box-shadow:none;
+}
+.a-btn.secondary:hover { background:rgba(201,24,74,.35); }
+.progress-bar-wrap {
+  width:100%; background:rgba(255,255,255,.08); border-radius:4px; height:4px; margin-top:.8rem; cursor:pointer;
+}
+.progress-bar { height:100%; background:var(--grad-rose); border-radius:4px; width:0%; transition:width .2s; }
+
+.hint-box {
+  max-width:420px; width:100%;
+  background:rgba(157,78,221,.1); border:1px solid rgba(157,78,221,.35);
+  border-radius:16px; padding:1.2rem 1.5rem; text-align:left;
+}
+.hint-box p { font-size:.82rem; color:var(--dim); line-height:1.75; }
+.hint-box strong { color:var(--pink); }
+
+.pw-form { max-width:420px; width:100%; }
+.pw-result { display:none; }
+.pw-result.show { display:block; }
+.pw-enter-hint { font-size:.78rem; color:var(--dim); margin-top:.5rem; text-align:center; }
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+
+<nav class="nav">
+  <a href="index.html" class="nav-logo" style="cursor:pointer;">💗 RyZeria</a>
+  <button class="music-btn" id="music-btn" onclick="toggleMusic()">
+    🎵 <span class="music-disc paused" id="disc">🎵</span> Musik Off
+  </button>
+</nav>
+
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+<audio id="morse-audio"><source src="assets/audio/morse.mp3" type="audio/mpeg"></audio>
+
+<main class="page">
+<section class="s1-hero">
+
+  <div class="badge">🔐 Section 1 — Sandi Morse</div>
+
+  <h1 style="font-family:'Playfair Display',serif; font-size:clamp(1.8rem,5vw,3.2rem); margin-bottom:.3rem;">
+    Dengarkan dengan Seksama
+  </h1>
+  <p style="color:var(--dim); max-width:440px; line-height:1.8; font-size:.9rem;">
+    Ada pesan tersembunyi untukmu dalam sandi morse. Dengarkan baik-baik dan temukan kata sandinya untuk melanjutkan petualangan kita! 🎧
+  </p>
+
+  <!-- MORSE VISUAL -->
+  <div class="morse-visual" aria-hidden="true">
+    <!-- RyzeriaSelamanya in morse dots/dashes visual -->
+    <span class="m-dot"></span><span class="m-dash"></span><span class="m-gap"></span>
+    <span class="m-dash"></span><span class="m-dot"></span><span class="m-dash"></span><span class="m-dot"></span><span class="m-gap"></span>
+    <span class="m-dash"></span><span class="m-dot"></span><span class="m-dash"></span><span class="m-gap"></span>
+    <span class="m-dot"></span><span class="m-dash"></span><span class="m-gap"></span>
+    <span class="m-dot"></span><span class="m-dash"></span><span class="m-dot"></span><span class="m-gap"></span>
+    <span class="m-dot"></span><span class="m-dash"></span><span class="m-gap"></span>
+    <span class="m-dot"></span><span class="m-dot"></span><span class="m-gap"></span>
+    <span class="m-dot"></span><span class="m-dash"></span>
+  </div>
+
+  <!-- AUDIO PLAYER -->
+  <div class="audio-card">
+    <h3>🔊 Pesan Sandi Morse</h3>
+    <p>Klik play untuk mendengarkan. Aturan permainan dan kata sandi ada di dalam audio ini.</p>
+
+    <div class="visualizer" id="visualizer">
+      <div class="v-bar stopped" id="vb0"></div>
+      <div class="v-bar stopped" id="vb1"></div>
+      <div class="v-bar stopped" id="vb2"></div>
+      <div class="v-bar stopped" id="vb3"></div>
+      <div class="v-bar stopped" id="vb4"></div>
+      <div class="v-bar stopped" id="vb5"></div>
+      <div class="v-bar stopped" id="vb6"></div>
+      <div class="v-bar stopped" id="vb7"></div>
+    </div>
+
+    <div class="progress-bar-wrap" id="pb-wrap" onclick="seekAudio(event)">
+      <div class="progress-bar" id="pb"></div>
+    </div>
+
+    <div class="audio-controls">
+      <button class="a-btn secondary" onclick="restartAudio()" title="Ulangi">🔄</button>
+      <button class="a-btn" id="play-btn" onclick="toggleMorse()">▶</button>
+      <button class="a-btn secondary" onclick="changeSpeed()" title="Kecepatan" id="speed-btn">1×</button>
+    </div>
+
+    <div style="font-size:.75rem; color:var(--dim); margin-top:.8rem;" id="audio-time">0:00 / --:--</div>
+  </div>
+
+  <!-- HINT -->
+  <div class="hint-box">
+    <p>
+      📻 <strong>Cara mendengarkan:</strong> Dengarkan titik (·) dan garis (−) dalam audio morse.<br>
+      Setiap huruf dipisahkan oleh jeda pendek, setiap kata dipisahkan jeda panjang.<br>
+      <strong>Petunjuk:</strong> Kata sandi terdiri dari satu kata tanpa spasi.
+    </p>
+  </div>
+
+  <!-- PASSWORD FORM -->
+  <div class="pw-form">
+    <div class="field">
+      <label>🔑 Masukkan Kata Sandi dari Audio Morse</label>
+      <input type="password" class="input" id="pw-input" placeholder="Ketik kata sandi di sini..."
+        onkeydown="if(event.key==='Enter')checkPw()">
+    </div>
+    <div style="display:flex; gap:.8rem; align-items:center;">
+      <button class="btn btn-rose" onclick="checkPw()" style="flex:1;">
+        🔓 Buka Section 2
+      </button>
+      <button class="btn btn-outline btn-sm" onclick="toggleShow()">👁</button>
+    </div>
+    <p class="pw-enter-hint">Kata sandi ada di dalam audio sandi morse ☝️</p>
+
+    <!-- Error / Success messages -->
+    <div id="pw-err" style="display:none; margin-top:.8rem; padding:.7rem 1rem; background:rgba(255,68,68,.1); border:1px solid rgba(255,68,68,.4); border-radius:10px; font-size:.82rem; color:#ff8888; text-align:center;">
+      ❌ Kata sandi salah. Coba dengarkan lagi!
+    </div>
+    <div id="pw-ok" style="display:none; margin-top:.8rem; padding:.7rem 1rem; background:rgba(0,255,136,.1); border:1px solid rgba(0,255,136,.4); border-radius:10px; font-size:.82rem; color:var(--green); text-align:center;">
+      ✅ Benar! Membuka Section 2...
+    </div>
+  </div>
+
+  <a href="index.html" class="btn btn-outline btn-sm">← Kembali ke Beranda</a>
+
+</section>
+</main>
+
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal">
+    <div class="modal-icon">✨</div>
+    <div class="modal-title"></div>
+    <div class="modal-body"></div>
+    <div class="modal-code hidden"></div>
+    <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+initParticles('particles');
+
+// ─── BG MUSIC ─────────────────────────────────────────────────
+const bgAudio = document.getElementById('bg-audio');
+let bgOn = sessionStorage.getItem('music_on') === '1';
+if (bgOn) bgAudio.play().catch(()=>{});
+updateMusicBtnState();
+
+function toggleMusic() {
+  bgOn = !bgOn;
+  bgOn ? bgAudio.play().catch(()=>{}) : bgAudio.pause();
+  sessionStorage.setItem('music_on', bgOn ? '1' : '0');
+  updateMusicBtnState();
+}
+function updateMusicBtnState() {
+  const btn = document.getElementById('music-btn');
+  btn.innerHTML = bgOn
+    ? '🎵 <span class="music-disc" id="disc">🎵</span> Musik On'
+    : '🎵 <span class="music-disc paused" id="disc">🎵</span> Musik Off';
+}
+
+// ─── MORSE AUDIO ──────────────────────────────────────────────
+const morseAudio = document.getElementById('morse-audio');
+let morseOn = false;
+let speed = 1;
+const speeds = [1, 1.5, 0.75];
+let speedIdx = 0;
+const vbars = document.querySelectorAll('.v-bar');
+
+function toggleMorse() {
+  if (morseOn) {
+    morseAudio.pause(); morseOn = false;
+    document.getElementById('play-btn').textContent = '▶';
+    vbars.forEach(b => b.classList.add('stopped'));
+  } else {
+    morseAudio.play().catch(()=>{});
+    morseOn = true;
+    document.getElementById('play-btn').textContent = '⏸';
+    vbars.forEach(b => b.classList.remove('stopped'));
+  }
+}
+
+function restartAudio() {
+  morseAudio.currentTime = 0;
+  if (!morseOn) toggleMorse();
+}
+
+function changeSpeed() {
+  speedIdx = (speedIdx + 1) % speeds.length;
+  speed = speeds[speedIdx];
+  morseAudio.playbackRate = speed;
+  document.getElementById('speed-btn').textContent = speed + '×';
+}
+
+function seekAudio(e) {
+  const rect = document.getElementById('pb-wrap').getBoundingClientRect();
+  const pct  = (e.clientX - rect.left) / rect.width;
+  morseAudio.currentTime = pct * morseAudio.duration;
+}
+
+morseAudio.addEventListener('ended', () => {
+  morseOn = false;
+  document.getElementById('play-btn').textContent = '▶';
+  vbars.forEach(b => b.classList.add('stopped'));
+});
+
+morseAudio.addEventListener('timeupdate', () => {
+  if (!morseAudio.duration) return;
+  const pct = (morseAudio.currentTime / morseAudio.duration) * 100;
+  document.getElementById('pb').style.width = pct + '%';
+  const fmt = s => {
+    const m = Math.floor(s/60), sec = Math.floor(s%60);
+    return m + ':' + String(sec).padStart(2,'0');
+  };
+  document.getElementById('audio-time').textContent =
+    fmt(morseAudio.currentTime) + ' / ' + (morseAudio.duration ? fmt(morseAudio.duration) : '--:--');
+});
+
+// ─── PASSWORD CHECK ────────────────────────────────────────────
+function checkPw() {
+  const val = document.getElementById('pw-input').value.trim();
+  const errEl = document.getElementById('pw-err');
+  const okEl  = document.getElementById('pw-ok');
+  const inp   = document.getElementById('pw-input');
+
+  errEl.style.display = 'none';
+  okEl.style.display  = 'none';
+  inp.classList.remove('err','ok');
+
+  if (val === 'RyzeriaSelamanya') {
+    inp.classList.add('ok');
+    okEl.style.display = 'block';
+    localStorage.setItem('s1_passed','1');
+    setTimeout(() => { window.location.href = 'section2.html'; }, 1200);
+  } else {
+    inp.classList.add('err');
+    errEl.style.display = 'block';
+    setTimeout(() => inp.classList.remove('err'), 600);
+  }
+}
+
+function toggleShow() {
+  const inp = document.getElementById('pw-input');
+  inp.type = inp.type === 'password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

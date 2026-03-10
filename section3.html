@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Grand Finale ✨ — Section 3</title>
+<link rel="stylesheet" href="css/style.css">
+<style>
+/* ── Layout ─────────────────────────────────────────────────── */
+.s3-wrap  { max-width:660px; margin:0 auto; padding:2rem 1.4rem; }
+.s3-hero  { text-align:center; padding:3rem 1.5rem 2rem; }
+
+/* ── Code entry ─────────────────────────────────────────────── */
+.codes-section {
+  background:var(--bg-card); border:1px solid var(--border-rose);
+  border-radius:22px; padding:2rem 1.8rem; margin-bottom:1.5rem;
+}
+.codes-section h3 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--pink); margin-bottom:.4rem; }
+.codes-section p  { font-size:.82rem; color:var(--dim); margin-bottom:1.4rem; line-height:1.7; }
+.codes-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:.8rem; margin-bottom:1.2rem; }
+.c-field label { font-size:.7rem; letter-spacing:2px; text-transform:uppercase; color:var(--dim); display:block; margin-bottom:.3rem; }
+.c-input {
+  width:100%; padding:.7rem 1rem;
+  background:rgba(255,255,255,.04); border:2px solid rgba(201,24,74,.3);
+  border-radius:10px; color:var(--white);
+  font-family:'Courier New',monospace; font-size:.88rem; letter-spacing:2px;
+  outline:none; transition:all .3s; text-transform:none;
+}
+.c-input:focus { border-color:var(--rose); box-shadow:0 0 10px rgba(201,24,74,.2); }
+.c-input.valid   { border-color:var(--green); color:var(--green); }
+.c-input.invalid { border-color:#ff4444; animation:shake .4s; }
+
+/* ── Password section ───────────────────────────────────────── */
+.pw-section {
+  background:var(--bg-card); border:1px solid rgba(255,215,0,.3);
+  border-radius:22px; padding:2rem 1.8rem; margin-bottom:1.5rem;
+  display:none;
+}
+.pw-section.show { display:block; animation:fadeIn .5s ease; }
+.pw-section h3 { font-family:'Playfair Display',serif; font-size:1.3rem; color:var(--gold); margin-bottom:.4rem; }
+.pw-section p  { font-size:.82rem; color:var(--dim); margin-bottom:1.2rem; line-height:1.7; }
+
+/* ── Date picker section ────────────────────────────────────── */
+.date-section {
+  display:none;
+}
+.date-section.show { display:block; animation:fadeIn .6s ease; }
+.date-section h2 {
+  font-family:'Playfair Display',serif; font-size:1.6rem;
+  text-align:center; margin-bottom:.5rem;
+}
+.date-section .sub { font-size:.85rem; color:var(--dim); text-align:center; margin-bottom:1.5rem; line-height:1.7; }
+
+.date-choices {
+  display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr));
+  gap:1rem; margin:0 auto; max-width:620px;
+}
+.dc {
+  padding:1.4rem .8rem;
+  background:var(--bg-card); border:2px solid var(--border-rose);
+  border-radius:18px; text-align:center;
+  cursor:pointer; transition:all .35s;
+  position:relative; overflow:hidden;
+}
+.dc::before {
+  content:''; position:absolute; inset:0; border-radius:18px;
+  background:radial-gradient(circle at 50% 0%,rgba(201,24,74,.06),transparent 65%);
+}
+.dc:hover { border-color:var(--rose); background:rgba(201,24,74,.1); transform:scale(1.06); box-shadow:var(--shadow-rose); }
+.dc-icon  { font-size:2.2rem; display:block; margin-bottom:.5rem; }
+.dc-label { font-size:.82rem; font-weight:600; color:var(--white); }
+.dc-sub   { font-size:.72rem; color:var(--dim); margin-top:.2rem; }
+
+/* ── Reveal loading ─────────────────────────────────────────── */
+.reveal-overlay {
+  position:fixed; inset:0; z-index:700;
+  background:rgba(6,3,15,.97);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:2rem;
+  opacity:0; pointer-events:none; transition:opacity .4s;
+}
+.reveal-overlay.show { opacity:1; pointer-events:all; }
+.reveal-spinner {
+  width:60px; height:60px; border:4px solid rgba(255,215,0,.2);
+  border-top-color:var(--gold); border-radius:50%;
+  animation:spin 1s linear infinite; margin-bottom:1.5rem;
+}
+.reveal-msg {
+  font-family:'Dancing Script',cursive; font-size:1.5rem;
+  color:var(--pink); margin-bottom:.5rem;
+  animation:pulse 1.5s ease-in-out infinite;
+}
+
+/* ── Celebration ────────────────────────────────────────────── */
+.celebrate {
+  position:fixed; inset:0; z-index:800;
+  background:linear-gradient(135deg,rgba(6,3,15,.98),rgba(20,5,40,.98));
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  text-align:center; padding:2rem;
+  opacity:0; pointer-events:none; transition:opacity .6s;
+  overflow:hidden;
+}
+.celebrate.show { opacity:1; pointer-events:all; }
+
+.cel-badge {
+  display:inline-block; padding:.5rem 1.5rem;
+  background:var(--grad-gold); border-radius:50px;
+  font-size:.8rem; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:#06030f; margin-bottom:1.5rem;
+}
+.cel-title {
+  font-family:'Dancing Script',cursive;
+  font-size:clamp(1.8rem,6vw,3.8rem); color:var(--gold);
+  text-shadow:0 0 30px rgba(255,215,0,.8);
+  animation:glow 2s ease-in-out infinite; margin-bottom:.8rem;
+}
+.cel-date {
+  font-family:'Playfair Display',serif;
+  font-size:clamp(1.4rem,5vw,3rem); color:var(--rose-bright);
+  text-shadow:0 0 20px rgba(255,107,157,.6); margin-bottom:1rem;
+}
+.cel-hearts { font-size:2rem; letter-spacing:.5rem; margin-bottom:1.2rem; }
+.cel-msg {
+  font-family:'Dancing Script',cursive; font-size:clamp(1rem,2.5vw,1.35rem);
+  color:var(--pink); max-width:520px; line-height:1.9; margin-bottom:2rem;
+  text-shadow:0 0 10px rgba(255,179,198,.3);
+}
+.cel-info {
+  display:flex; gap:1.5rem; flex-wrap:wrap; justify-content:center;
+  margin-bottom:2rem;
+}
+.cel-info-box {
+  background:rgba(255,255,255,.05); border:1px solid rgba(255,215,0,.3);
+  border-radius:14px; padding:1rem 1.5rem; text-align:center; min-width:130px;
+}
+.cel-info-icon { font-size:1.8rem; margin-bottom:.4rem; display:block; }
+.cel-info-label{ font-size:.72rem; letter-spacing:2px; text-transform:uppercase; color:var(--dim); margin-bottom:.2rem; }
+.cel-info-val  { font-family:'Playfair Display',serif; font-size:1.05rem; color:var(--gold); }
+
+.floating-hearts span {
+  position:absolute;
+  font-size:1.5rem;
+  animation:floatHeart linear infinite;
+  opacity:.8;
+}
+@keyframes floatHeart {
+  0%   { transform:translateY(100vh) scale(0); opacity:0; }
+  10%  { opacity:.8; transform:translateY(80vh) scale(1); }
+  100% { transform:translateY(-10vh) scale(1); opacity:0; }
+}
+
+/* ── Steps indicator ────────────────────────────────────────── */
+.steps {
+  display:flex; align-items:center; justify-content:center;
+  gap:.5rem; margin-bottom:2rem;
+}
+.step {
+  width:30px; height:30px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:.78rem; font-weight:700; transition:all .4s;
+}
+.step.active { background:var(--rose); color:#fff; box-shadow:var(--shadow-rose); }
+.step.done   { background:var(--green); color:#06030f; }
+.step.pending{ background:rgba(255,255,255,.1); color:var(--dim); border:1px solid rgba(255,255,255,.15); }
+.step-line { width:30px; height:2px; background:rgba(255,255,255,.15); }
+.step-line.done { background:var(--green); }
+</style>
+</head>
+<body>
+
+<canvas id="star-canvas"></canvas>
+<div id="particles"></div>
+<audio id="bg-audio" loop><source src="assets/audio/song.mp3" type="audio/mpeg"></audio>
+
+<nav class="nav">
+  <a href="section2.html" class="nav-logo" style="cursor:pointer;">💗 RyZeria</a>
+  <button class="music-btn" id="music-btn" onclick="toggleMusic()">
+    🎵 <span class="music-disc paused" id="disc">🎵</span> Musik Off
+  </button>
+</nav>
+
+<!-- REVEAL LOADING -->
+<div class="reveal-overlay" id="reveal-overlay">
+  <div class="reveal-spinner"></div>
+  <div class="reveal-msg" id="reveal-msg">Memutar roda takdir... 🌸</div>
+  <p style="font-size:.82rem; color:var(--dim);">Semesta sedang berunding untuk kita... ✨</p>
+</div>
+
+<!-- CELEBRATION / FINALE -->
+<div class="celebrate" id="celebrate">
+  <div class="floating-hearts" id="floating-hearts"></div>
+  <div class="cel-badge">✨ The Date is Decided! ✨</div>
+  <div class="cel-title">Takdir Telah Menjawab...</div>
+  <div class="cel-date">📅 25 April 2026</div>
+  <div class="cel-hearts">💗 🌸 💜 🌺 💕</div>
+  <div class="cel-msg">
+    Apapun yang kamu pilih, semesta selalu mengarahkan kita ke tanggal ini —
+    hari yang sempurna untuk date kita yang paling istimewa!
+    Sabtu, 25 April 2026 adalah hari kita. 🥰
+  </div>
+  <div class="cel-info">
+    <div class="cel-info-box">
+      <span class="cel-info-icon">📅</span>
+      <div class="cel-info-label">Tanggal</div>
+      <div class="cel-info-val">25 April 2026</div>
+    </div>
+    <div class="cel-info-box">
+      <span class="cel-info-icon">📆</span>
+      <div class="cel-info-label">Hari</div>
+      <div class="cel-info-val">Sabtu</div>
+    </div>
+    <div class="cel-info-box">
+      <span class="cel-info-icon">❤️</span>
+      <div class="cel-info-label">Untuk</div>
+      <div class="cel-info-val">Mas Za & Gita</div>
+    </div>
+  </div>
+  <div style="display:flex; gap:1rem; flex-wrap:wrap; justify-content:center;">
+    <a href="index.html" class="btn btn-rose">🌸 Kembali ke Beranda</a>
+    <button class="btn btn-gold" onclick="launchConfetti()">🎊 Rayakan!</button>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="page">
+<div class="s3-wrap">
+
+  <!-- HERO -->
+  <div class="s3-hero">
+    <div class="badge">✨ Section 3 — Grand Finale</div>
+    <h1 style="font-family:'Playfair Display',serif; font-size:clamp(1.8rem,5vw,3rem); margin:.8rem 0;">
+      Kunci Terakhir 🔑
+    </h1>
+    <p style="color:var(--dim); max-width:480px; margin:0 auto; line-height:1.8; font-size:.88rem;">
+      Masukkan 5 kode dari game-game yang sudah kamu selesaikan, lalu masukkan kata sandi terakhir untuk membuka kejutan spesial! 🎁
+    </p>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="step active" id="step1">1</div>
+    <div class="step-line" id="line1"></div>
+    <div class="step pending" id="step2">2</div>
+    <div class="step-line" id="line2"></div>
+    <div class="step pending" id="step3">3</div>
+  </div>
+
+  <!-- ── STEP 1: CODE ENTRY ────────────────────────────────── -->
+  <div id="step1-section">
+    <div class="codes-section">
+      <h3>🔢 Langkah 1: Masukkan 5 Kode Rahasia</h3>
+      <p>Ketikkan kode yang kamu dapatkan dari setiap game. Kode bersifat case-sensitive!</p>
+
+      <div class="codes-grid">
+        <div class="c-field">
+          <label>Kode Game 1 🧩</label>
+          <input class="c-input" id="c1" placeholder="Unl6M0" oninput="checkCodeField(this,0)">
+        </div>
+        <div class="c-field">
+          <label>Kode Game 2 🃏</label>
+          <input class="c-input" id="c2" placeholder="chdDRI" oninput="checkCodeField(this,1)">
+        </div>
+        <div class="c-field">
+          <label>Kode Game 3 🔍</label>
+          <input class="c-input" id="c3" placeholder="NHBQeT" oninput="checkCodeField(this,2)">
+        </div>
+        <div class="c-field">
+          <label>Kode Game 4 💭</label>
+          <input class="c-input" id="c4" placeholder="RuTiF2" oninput="checkCodeField(this,3)">
+        </div>
+        <div class="c-field">
+          <label>Kode Game 5 🔤</label>
+          <input class="c-input" id="c5" placeholder="M3JTQHJZ" oninput="checkCodeField(this,4)">
+        </div>
+      </div>
+
+      <!-- Auto-fill from localStorage -->
+      <button class="btn btn-outline btn-sm" onclick="autoFillCodes()" style="margin-bottom:.8rem;">
+        🔄 Isi Otomatis dari Game
+      </button>
+
+      <div id="codes-status" style="font-size:.8rem; color:var(--dim); margin-bottom:1rem;"></div>
+
+      <button class="btn btn-rose" id="submit-codes-btn" onclick="submitCodes()">
+        ✅ Verifikasi Kode
+      </button>
+
+      <div id="codes-err" style="display:none;margin-top:.8rem;padding:.7rem 1rem;background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.4);border-radius:10px;font-size:.82rem;color:#ff8888;text-align:center;">
+        ❌ Ada kode yang salah. Periksa kembali!
+      </div>
+    </div>
+  </div>
+
+  <!-- ── STEP 2: PASSWORD ──────────────────────────────────── -->
+  <div class="pw-section" id="step2-section">
+    <h3>🔐 Langkah 2: Kata Sandi Akhir</h3>
+    <p>
+      Kode semua benar! Sekarang masukkan kata sandi terakhir untuk membuka Grand Finale.
+      Kata sandi ini tersembunyi di suatu tempat dalam petualangan kita... 🧩
+    </p>
+    <div class="field">
+      <label>Kata Sandi Akhir</label>
+      <div style="display:flex;gap:.6rem;">
+        <input type="password" class="input" id="pw-input" placeholder="Masukkan kata sandi..."
+          onkeydown="if(event.key==='Enter')submitPassword()" style="flex:1;">
+        <button class="btn btn-outline btn-sm" onclick="togglePw()">👁</button>
+      </div>
+    </div>
+    <button class="btn btn-gold" onclick="submitPassword()">🔓 Buka Finale!</button>
+    <div id="pw-err" style="display:none;margin-top:.8rem;padding:.7rem 1rem;background:rgba(255,68,68,.1);border:1px solid rgba(255,68,68,.4);border-radius:10px;font-size:.82rem;color:#ff8888;text-align:center;">
+      ❌ Kata sandi salah. Temukan petunjuknya di Section 1 & 2!
+    </div>
+  </div>
+
+  <!-- ── STEP 3: DATE PICKER ───────────────────────────────── -->
+  <div class="date-section" id="step3-section">
+    <div class="section-eyebrow" style="margin-bottom:1.5rem;">
+      <div class="eyebrow-tag">🗓 Langkah 3</div>
+      <div class="divider"></div>
+    </div>
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;text-align:center;margin-bottom:.5rem;">
+      Pilih Tanggal Date Kita! 📅
+    </h2>
+    <p style="color:var(--dim);font-size:.85rem;text-align:center;margin-bottom:1.5rem;line-height:1.7;max-width:480px;margin-inline:auto;">
+      Sekarang waktunya memilih! Kamu bisa pilih tema date yang kamu inginkan —
+      tapi ingat, semesta punya rencana tersendiri... 🌟
+    </p>
+
+    <div class="date-choices">
+      <div class="dc" onclick="pickDate(this)">
+        <span class="dc-icon">🌊</span>
+        <div class="dc-label">Tepi Pantai</div>
+        <div class="dc-sub">Suasana laut yang romantis</div>
+      </div>
+      <div class="dc" onclick="pickDate(this)">
+        <span class="dc-icon">🏙️</span>
+        <div class="dc-label">Kota Malam</div>
+        <div class="dc-sub">Jalan-jalan sore & malam</div>
+      </div>
+      <div class="dc" onclick="pickDate(this)">
+        <span class="dc-icon">🌸</span>
+        <div class="dc-label">Taman Bunga</div>
+        <div class="dc-sub">Anggrek & bunga favoritmu</div>
+      </div>
+      <div class="dc" onclick="pickDate(this)">
+        <span class="dc-icon">🎬</span>
+        <div class="dc-label">Nonton Bareng</div>
+        <div class="dc-sub">Date bioskop yang seru</div>
+      </div>
+      <div class="dc" onclick="pickDate(this)">
+        <span class="dc-icon">🥟</span>
+        <div class="dc-label">Makan Dimsum</div>
+        <div class="dc-sub">Makanan favorit kita!</div>
+      </div>
+      <div class="dc" onclick="pickDate(this)">
+        <span class="dc-icon">⭐</span>
+        <div class="dc-label">Kejutan!</div>
+        <div class="dc-sub">Biarkan Mas Za yang urus</div>
+      </div>
+    </div>
+    <p style="font-size:.75rem;color:var(--dim);text-align:center;margin-top:1rem;">
+      Pilih satu opsi — semesta akan menjawab! ✨
+    </p>
+  </div>
+
+</div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="if(event.target===this)hideModal()">
+  <div class="modal"><div class="modal-icon">✨</div><div class="modal-title"></div>
+  <div class="modal-body"></div><div class="modal-code hidden"></div>
+  <button class="btn btn-rose btn-sm" onclick="hideModal()">Tutup</button></div>
+</div>
+
+<script src="js/app.js"></script>
+<script>
+initStars('star-canvas');
+initParticles('particles');
+
+// ─── BG MUSIC ─────────────────────────────────────────────────
+const bgAudio = document.getElementById('bg-audio');
+let bgOn = sessionStorage.getItem('music_on') === '1';
+if (bgOn) bgAudio.play().catch(()=>{});
+syncMusicBtn();
+function toggleMusic() {
+  bgOn = !bgOn;
+  bgOn ? bgAudio.play().catch(()=>{}) : bgAudio.pause();
+  sessionStorage.setItem('music_on', bgOn ? '1' : '0');
+  syncMusicBtn();
+}
+function syncMusicBtn() {
+  document.getElementById('music-btn').innerHTML = bgOn
+    ? '🎵 <span class="music-disc">🎵</span> Musik On'
+    : '🎵 <span class="music-disc paused">🎵</span> Musik Off';
+}
+
+// ─── VALID CODES ──────────────────────────────────────────────
+const VALID = ['Unl6M0','chdDRI','NHBQeT','RuTiF2','M3JTQHJZ'];
+const PW    = 'Ryz3G!t4H4pPy4nN!v3rS@rY';
+const inputs = ['c1','c2','c3','c4','c5'];
+
+function checkCodeField(el, idx) {
+  el.classList.remove('valid','invalid');
+  if (el.value === VALID[idx]) el.classList.add('valid');
+  updateCodesStatus();
+}
+
+function updateCodesStatus() {
+  let ok = 0;
+  inputs.forEach((id, i) => {
+    const v = document.getElementById(id).value;
+    if (v === VALID[i]) ok++;
+  });
+  document.getElementById('codes-status').textContent =
+    ok === 5 ? '✅ Semua kode benar! Klik Verifikasi.' : `${ok}/5 kode benar`;
+}
+
+function autoFillCodes() {
+  const GAME_CODES = ['game1_code','game2_code','game3_code','game4_code','game5_code'];
+  let filled = 0;
+  GAME_CODES.forEach((key, i) => {
+    const saved = localStorage.getItem(key);
+    if (saved) {
+      const el = document.getElementById(inputs[i]);
+      el.value = saved;
+      el.classList.add('valid');
+      filled++;
+    }
+  });
+  toast(filled > 0 ? `✅ ${filled} kode berhasil diisi otomatis!` : 'Belum ada kode tersimpan dari game.', filled > 0 ? 'ok' : 'err');
+  updateCodesStatus();
+}
+
+function submitCodes() {
+  let allOk = true;
+  inputs.forEach((id, i) => {
+    const el  = document.getElementById(id);
+    const val = el.value.trim();
+    el.classList.remove('valid','invalid');
+    if (val === VALID[i]) {
+      el.classList.add('valid');
+    } else {
+      el.classList.add('invalid');
+      allOk = false;
+      setTimeout(() => el.classList.remove('invalid'), 600);
+    }
+  });
+
+  if (allOk) {
+    document.getElementById('codes-err').style.display = 'none';
+    // Advance to step 2
+    document.getElementById('step1').className = 'step done';
+    document.getElementById('line1').className = 'step-line done';
+    document.getElementById('step2').className = 'step active';
+    document.getElementById('step1-section').style.display = 'none';
+    document.getElementById('step2-section').classList.add('show');
+    toast('✅ Semua kode benar! Masukkan kata sandi akhir!', 'ok');
+  } else {
+    document.getElementById('codes-err').style.display = 'block';
+  }
+}
+
+// ─── PASSWORD ────────────────────────────────────────────────
+function togglePw() {
+  const el = document.getElementById('pw-input');
+  el.type  = el.type === 'password' ? 'text' : 'password';
+}
+
+function submitPassword() {
+  const val = document.getElementById('pw-input').value;
+  const err = document.getElementById('pw-err');
+  err.style.display = 'none';
+  document.getElementById('pw-input').classList.remove('err','ok');
+
+  if (val === PW) {
+    document.getElementById('pw-input').classList.add('ok');
+    toast('🔓 Kata sandi benar! Membuka Grand Finale...', 'ok');
+    // Advance to step 3
+    setTimeout(() => {
+      document.getElementById('step2').className = 'step done';
+      document.getElementById('line2').className = 'step-line done';
+      document.getElementById('step3').className = 'step active';
+      document.getElementById('step2-section').classList.remove('show');
+      document.getElementById('step3-section').classList.add('show');
+    }, 800);
+  } else {
+    document.getElementById('pw-input').classList.add('err');
+    err.style.display = 'block';
+    setTimeout(() => document.getElementById('pw-input').classList.remove('err'), 600);
+  }
+}
+
+// ─── DATE PICKER ─────────────────────────────────────────────
+const REVEAL_MESSAGES = [
+  'Memutar roda takdir... 🌸',
+  'Menghitung bintang untukmu... ⭐',
+  'Membuka kalender semesta... 📅',
+  'Meramal hari terbaik... 🔮',
+  'Bertanya pada anggrek bulan... 🌺',
+  'Menghubungi musang bulan... 🦡',
+];
+
+function pickDate(el) {
+  // Disable all choices
+  document.querySelectorAll('.dc').forEach(d => d.style.pointerEvents = 'none');
+
+  const label  = el.querySelector('.dc-label').textContent;
+  const overlay = document.getElementById('reveal-overlay');
+  const msgEl   = document.getElementById('reveal-msg');
+
+  overlay.classList.add('show');
+
+  let mi = 0;
+  const interval = setInterval(() => {
+    msgEl.textContent = REVEAL_MESSAGES[mi % REVEAL_MESSAGES.length];
+    mi++;
+  }, 600);
+
+  setTimeout(() => {
+    clearInterval(interval);
+    overlay.classList.remove('show');
+    showCelebration();
+  }, 3800);
+}
+
+function showCelebration() {
+  const cel = document.getElementById('celebrate');
+  cel.classList.add('show');
+  spawnFloatingHearts();
+  launchConfetti(120);
+}
+
+function spawnFloatingHearts() {
+  const wrap  = document.getElementById('floating-hearts');
+  const EMOJIS= ['💗','🌸','✨','💕','⭐','🌺','💜','💫'];
+  for (let i = 0; i < 18; i++) {
+    const s     = document.createElement('span');
+    s.textContent = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    s.style.left  = (Math.random() * 100) + 'vw';
+    s.style.bottom= '0';
+    const dur  = (Math.random() * 8 + 6).toFixed(1);
+    s.style.animationDuration = dur + 's';
+    s.style.animationDelay   = (Math.random() * 3).toFixed(1) + 's';
+    wrap.appendChild(s);
+  }
+}
+
+// ─── AUTO-FILL on load if already have codes ─────────────────
+window.addEventListener('load', () => {
+  autoFillCodes();
+  updateCodesStatus();
+});
+</script>
+</body>
+</html>
